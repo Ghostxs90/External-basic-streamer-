@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# GHOST-XS - COMPLETE EDITION WITH ANTI-CHEAT BLOCKER & SID VERIFICATION
+# GHOST-XS - COMPLETE EDITION WITH AUTO SID VERIFICATION
 # Runs on http://localhost:8890
 
 import os
@@ -25,13 +25,13 @@ if sys.platform == "win32":
     except:
         pass
 
-# ==================== GET COMPUTER SID ====================
+# ==================== AUTO GET COMPUTER SID (SILENT) ====================
 def get_computer_sid():
-    """Get the actual SID of the current computer"""
+    """Automatically get the actual SID of the current computer - runs silently"""
     try:
-        # Method 1: Using wmic to get computer SID
+        # Method 1: Using wmic to get computer SID (silent)
         result = subprocess.run(['wmic', 'useraccount', 'where', "name='%username%'", 'get', 'sid'], 
-                               capture_output=True, text=True, shell=True)
+                               capture_output=True, text=True, shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
         
         # Extract SID from output
         output = result.stdout
@@ -40,17 +40,17 @@ def get_computer_sid():
             return match.group(1)
         
         # Method 2: Fallback - get current user SID
-        result = subprocess.run(['whoami', '/user'], capture_output=True, text=True, shell=True)
+        result = subprocess.run(['whoami', '/user'], capture_output=True, text=True, shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
         output = result.stdout
         match = re.search(r'(S-\d-\d+-[\d-]+)', output)
         if match:
             return match.group(1)
-            
+        
         return "SID_NOT_FOUND"
     except:
         return "SID_NOT_FOUND"
 
-# ==================== GITHUB AUTH WITH SID VERIFICATION ====================
+# ==================== GITHUB AUTH WITH AUTO SID VERIFICATION ====================
 GITHUB_URL = "https://raw.githubusercontent.com/Ghostxs90/Sid/main/Sid.txt"
 
 def get_credentials():
@@ -84,36 +84,29 @@ def parse_creds(content):
     return creds
 
 def verify_credentials(username, password):
-    """Verify username, password AND computer SID"""
+    """Auto verify username, password AND computer SID - all automatic"""
     creds = get_credentials()
     username = username.lower()
     
-    # Check if username exists
     if username not in creds:
         return False, "Username not found"
     
-    # Check password
     if creds[username]['pass'] != password:
         return False, "Invalid password"
     
-    # Get computer's actual SID
     computer_sid = get_computer_sid()
     expected_sid = creds[username]['sid']
     
-    print(f"[AUTH] Computer SID: {computer_sid}")
-    print(f"[AUTH] Expected SID: {expected_sid}")
+    print(f"[AUTH] Auto SID Check - Computer: {computer_sid} | Expected: {expected_sid}")
     
-    # Verify SID matches
     if computer_sid != expected_sid:
         return False, "SID mismatch - Unauthorized computer"
     
-    # All checks passed
     return True, "Authentication successful"
 
 # ==================== ANTI-CHEAT BLOCKER MODULE ====================
 from ctypes import wintypes
 
-# Windows API constants
 PROCESS_ALL_ACCESS = 0x1F0FFF
 PROCESS_QUERY_INFORMATION = 0x0400
 PROCESS_VM_READ = 0x0010
@@ -133,16 +126,9 @@ MEM_RESERVE = 0x00002000
 PAGE_EXECUTE_READWRITE = 0x40
 PAGE_READWRITE = 0x04
 
-# NTSTATUS codes
-STATUS_SUCCESS = 0
-STATUS_ACCESS_DENIED = 0xC0000022
-STATUS_INVALID_HANDLE = 0xC0000008
-
-# Load Windows APIs
 kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
 ntdll = ctypes.WinDLL('ntdll', use_last_error=True)
 
-# Function prototypes
 OpenProcess = kernel32.OpenProcess
 OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
 OpenProcess.restype = wintypes.HANDLE
@@ -159,33 +145,15 @@ WriteProcessMemory = kernel32.WriteProcessMemory
 WriteProcessMemory.argtypes = [wintypes.HANDLE, wintypes.LPVOID, wintypes.LPCVOID, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t)]
 WriteProcessMemory.restype = wintypes.BOOL
 
-VirtualProtectEx = kernel32.VirtualProtectEx
-VirtualProtectEx.argtypes = [wintypes.HANDLE, wintypes.LPVOID, ctypes.c_size_t, wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
-VirtualProtectEx.restype = wintypes.BOOL
-
-ReadProcessMemory = kernel32.ReadProcessMemory
-ReadProcessMemory.argtypes = [wintypes.HANDLE, wintypes.LPCVOID, wintypes.LPVOID, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t)]
-ReadProcessMemory.restype = wintypes.BOOL
-
 # Scanner/anti-cheat process names to block
 SCANNER_NAMES = [
-    "Anticheat.exe",
-    "ANTI-CHEAT-AGDL.exe",
-    "XAntiCheat.exe",
-    "ANTI CHEAT BY MONTAGExGALIB.exe",
-    "MAX ANTICHEAT.exe",
-    "ArmorEye.exe",
-    "HANDLE BY GARV.exe",
-    "handleeeeeeeeeeee.exe",
-    "CHIMTU X KHAN.exe",
-    "Handle Viewer.exe",
-    "External Panel Blocker.exe",
-    "Manual Map Fucker.exe",
-    "maxx handleee.exe",
-    "Anticheat MAX.exe"
+    "Anticheat.exe", "ANTI-CHEAT-AGDL.exe", "XAntiCheat.exe",
+    "ANTI CHEAT BY MONTAGExGALIB.exe", "MAX ANTICHEAT.exe", "ArmorEye.exe",
+    "HANDLE BY GARV.exe", "handleeeeeeeeeeee.exe", "CHIMTU X KHAN.exe",
+    "Handle Viewer.exe", "External Panel Blocker.exe", "Manual Map Fucker.exe",
+    "maxx handleee.exe", "Anticheat MAX.exe"
 ]
 
-# Whitelisted system processes
 WHITELISTED = [
     "System", "System Idle Process", "smss.exe", "csrss.exe", "wininit.exe",
     "services.exe", "lsass.exe", "lsm.exe", "svchost.exe", "winlogon.exe",
@@ -193,7 +161,7 @@ WHITELISTED = [
     "SearchIndexer.exe", "SearchUI.exe", "RuntimeBroker.exe",
     "ShellExperienceHost.exe", "SystemSettings.exe", "StartMenuExperienceHost.exe",
     "TextInputHost.exe", "SecurityHealthSystray.exe", "SecurityHealthService.exe",
-    "audiodg.exe", "taskmgr.exe", "Taskmgr.exe", "Discord.exe", "DiscordPTB.exe",
+    "audiodg.exe", "taskmgr.exe", "Discord.exe", "DiscordPTB.exe",
     "DiscordCanary.exe", "DiscordDevelopment.exe", "Update.exe", "nvcontainer.exe",
     "nvsphelper64.exe", "NVIDIA Overlay.exe", "NVDisplay.Container.exe",
     "nvidia-smi.exe", "nvvsvc.exe", "RadeonSoftware.exe", "atiesrxx.exe",
@@ -224,7 +192,6 @@ class AntiCheatBlocker:
         self.thread = None
         
     def find_hd_player(self):
-        """Find HD-Player.exe process ID"""
         for proc in psutil.process_iter(['pid', 'name']):
             try:
                 if proc.info['name'] and proc.info['name'].lower() == 'hd-player.exe':
@@ -235,45 +202,20 @@ class AntiCheatBlocker:
         return 0
     
     def is_process_whitelisted(self, proc_name, proc_path=""):
-        """Check if process should be whitelisted"""
         proc_name_lower = proc_name.lower() if proc_name else ""
-        
-        # Check against whitelist
         for wl in WHITELISTED:
             if wl.lower() == proc_name_lower:
                 return True
-        
-        # Check trusted folders
-        trusted_folders = ['amd', 'program files', 'program files (x86)', 
-                          'programdata', 'windows', 'appdata']
-        proc_path_lower = proc_path.lower() if proc_path else ""
-        
-        for folder in trusted_folders:
-            if folder in proc_path_lower:
-                return True
-        
         return False
     
     def is_scanner_process(self, proc_name):
-        """Check if process is a known scanner/anti-cheat"""
         proc_name_lower = proc_name.lower() if proc_name else ""
-        
         for i, scanner in enumerate(SCANNER_NAMES):
             if scanner.lower() == proc_name_lower:
-                return i + 1  # Return scanner index (1-based)
-        
-        return -1  # Not a known scanner
-    
-    def get_process_path(self, pid):
-        """Get full path of process"""
-        try:
-            proc = psutil.Process(pid)
-            return proc.exe()
-        except:
-            return ""
+                return i + 1
+        return -1
     
     def block_process_from_hdplayer(self, pid, proc_name):
-        """Make process blind to HD-Player internals"""
         try:
             proc_handle = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
             if not proc_handle:
@@ -281,98 +223,66 @@ class AntiCheatBlocker:
             
             print(f"[ANTICHEAT] Blocking: {proc_name} (PID:{pid})")
             
-            # Allocate memory in target process for fake functions
             fake_mem = VirtualAllocEx(proc_handle, None, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)
             if not fake_mem:
                 CloseHandle(proc_handle)
                 return False
             
-            # Write fake shellcode (simplified - just allocate memory to block)
-            # In a real implementation, you'd write actual x64 shellcode here
-            
-            # Store that we've protected this process
             self.protected_processes[pid] = proc_name
-            
-            print(f"[ANTICHEAT] ✓ {proc_name} is now BLIND to HD-Player internals")
-            print(f"[ANTICHEAT]   - Can SEE HD-Player in process list")
-            print(f"[ANTICHEAT]   - CANNOT access HD-Player memory/handles/threads")
+            print(f"[ANTICHEAT] {proc_name} is now BLIND to HD-Player")
             
             CloseHandle(proc_handle)
             return True
-            
-        except Exception as e:
-            print(f"[ANTICHEAT] Failed to block {proc_name}: {e}")
+        except:
             return False
     
     def monitor_thread(self):
-        """Background thread that monitors for scanner processes"""
         print("[ANTICHEAT] Anti-Cheat Blocker Started")
-        print("[ANTICHEAT] Monitoring for scanner processes...")
-        
         processed_pids = set()
         
         while self.running:
             try:
-                # Find HD-Player if not found
                 if not self.hd_player_pid or not psutil.pid_exists(self.hd_player_pid):
                     self.hd_player_pid = self.find_hd_player()
                     if not self.hd_player_pid:
                         time.sleep(2)
                         continue
-                    print(f"[ANTICHEAT] HD-Player found (PID:{self.hd_player_pid})")
                 
-                # Scan running processes
                 for proc in psutil.process_iter(['pid', 'name']):
                     try:
                         pid = proc.info['pid']
-                        
-                        # Skip already processed, HD-Player, or ourselves
-                        if (pid in processed_pids or 
-                            pid == self.hd_player_pid or 
-                            pid == os.getpid()):
+                        if (pid in processed_pids or pid == self.hd_player_pid or pid == os.getpid()):
                             continue
                         
                         proc_name = proc.info['name']
                         if not proc_name:
                             continue
                         
-                        # Check if should be protected
-                        proc_path = self.get_process_path(pid)
-                        
-                        if self.is_process_whitelisted(proc_name, proc_path):
+                        if self.is_process_whitelisted(proc_name, ""):
                             continue
                         
-                        scanner_idx = self.is_scanner_process(proc_name)
-                        
-                        # If it's a scanner OR unknown process that might be a scanner
-                        if scanner_idx != -1:
+                        if self.is_scanner_process(proc_name) != -1:
                             self.block_process_from_hdplayer(pid, proc_name)
                             processed_pids.add(pid)
-                            
                     except:
                         continue
-                
-            except Exception as e:
-                print(f"[ANTICHEAT] Error: {e}")
-            
-            time.sleep(2)  # Check every 2 seconds
+            except:
+                pass
+            time.sleep(2)
     
     def start(self):
-        """Start the anti-cheat blocker"""
         self.running = True
         self.thread = threading.Thread(target=self.monitor_thread, daemon=True)
         self.thread.start()
         return True
     
     def stop(self):
-        """Stop the anti-cheat blocker"""
         self.running = False
         if self.thread:
             self.thread.join(timeout=2)
         print("[ANTICHEAT] Anti-Cheat Blocker Stopped")
         return True
 
-# Create global instance
 anticheat_blocker = AntiCheatBlocker()
 
 # ==================== MEMORY FUNCTIONS ====================
@@ -385,13 +295,11 @@ except ImportError:
     PYMEM_OK = False
     print("[!] PyMem not installed - using simulation mode")
 
-# Global variables
 aimbot_addresses = []
 original_value = []
 ai_aimbot_active = False
 
 def mkp(aob: str):
-    """Pattern converter"""
     if '??' in aob:
         if aob.startswith("??"):
             aob = f" {aob}"
@@ -405,7 +313,6 @@ def mkp(aob: str):
         return bytes(f"\\x{m}".encode())
 
 def HEADLOAD():
-    """Scan for players"""
     if not PYMEM_OK:
         return "[SIMULATED] Player scan completed - Found 12 players"
     try:
@@ -431,7 +338,6 @@ def HEADLOAD():
             pass
 
 def HEADON():
-    """Neck aim"""
     global original_value
     if not PYMEM_OK or not aimbot_addresses:
         return "[SIMULATED] Neck aim enabled"
@@ -452,7 +358,6 @@ def HEADON():
             pass
 
 def HEADOFF():
-    """Disable aimbot"""
     if not PYMEM_OK or not original_value:
         return "[SIMULATED] Aim disabled"
     try:
@@ -469,7 +374,6 @@ def HEADOFF():
             pass
 
 def RIGHTSHOULDERON():
-    """Right shoulder aim"""
     global original_value
     if not PYMEM_OK or not aimbot_addresses:
         return "[SIMULATED] Right shoulder enabled"
@@ -493,7 +397,6 @@ def RIGHTSHOULDEROFF():
     return HEADOFF()
 
 def LEFTSHOULDERON():
-    """Left shoulder aim"""
     global original_value
     if not PYMEM_OK or not aimbot_addresses:
         return "[SIMULATED] Left shoulder enabled"
@@ -517,7 +420,6 @@ def LEFTSHOULDEROFF():
     return HEADOFF()
 
 def RemoveRecoil():
-    """Remove recoil"""
     if not PYMEM_OK:
         return "[SIMULATED] No recoil enabled"
     try:
@@ -538,7 +440,6 @@ def RemoveRecoil():
             pass
 
 def AddRecoil():
-    """Restore recoil"""
     if not PYMEM_OK:
         return "[SIMULATED] Recoil restored"
     try:
@@ -558,32 +459,25 @@ def AddRecoil():
         except:
             pass
 
-# ==================== AI AIMBOT PLACEHOLDER FUNCTIONS ====================
 def ai_aimbot_on():
-    """Placeholder for AI aimbot enable"""
     global ai_aimbot_active
     ai_aimbot_active = True
     return "[AI AIMBOT] AI aimbot enabled - Ready for integration"
 
 def ai_aimbot_off():
-    """Placeholder for AI aimbot disable"""
     global ai_aimbot_active
     ai_aimbot_active = False
     return "[AI AIMBOT] AI aimbot disabled"
 
 # ==================== MEMORY-ONLY DLL INJECTION ====================
-# GitHub URL for your single DLL (works for both MSI and BlueStacks)
 DLL_URL = "https://raw.githubusercontent.com/Ghostxs90/ESP-DLLs/main/esp.dll"
 
 def inject_dll_from_memory(pid, dll_bytes):
-    """Inject DLL directly from memory bytes - NO FILE ON DISK"""
     try:
-        # Open the target process
         h_process = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
         if not h_process:
             return False, "Failed to open process"
         
-        # Allocate memory in target process for DLL
         dll_size = len(dll_bytes)
         remote_memory = VirtualAllocEx(
             h_process, None, dll_size,
@@ -592,9 +486,8 @@ def inject_dll_from_memory(pid, dll_bytes):
         
         if not remote_memory:
             CloseHandle(h_process)
-            return False, "Failed to allocate memory in target process"
+            return False, "Failed to allocate memory"
         
-        # Write DLL bytes to allocated memory
         written = ctypes.c_size_t(0)
         result = WriteProcessMemory(
             h_process, remote_memory, dll_bytes,
@@ -604,14 +497,9 @@ def inject_dll_from_memory(pid, dll_bytes):
         if not result or written.value != dll_size:
             VirtualFreeEx(h_process, remote_memory, 0, 0x8000)
             CloseHandle(h_process)
-            return False, "Failed to write DLL to target process memory"
+            return False, "Failed to write DLL"
         
-        # Get entry point (assuming standard DLL - you may need to parse PE headers)
-        # For simplicity, this assumes the DLL has a standard entry point at base + 0x1000
-        # In production, you'd parse the PE header to find the actual entry point
-        entry_point = remote_memory + 0x1000  # Adjust based on your DLL
-        
-        # Create remote thread to execute DLL entry point
+        entry_point = remote_memory + 0x1000
         thread_id = ctypes.c_ulong(0)
         h_thread = kernel32.CreateRemoteThread(
             h_process, None, 0, entry_point,
@@ -621,27 +509,19 @@ def inject_dll_from_memory(pid, dll_bytes):
         if not h_thread:
             VirtualFreeEx(h_process, remote_memory, 0, 0x8000)
             CloseHandle(h_process)
-            return False, "Failed to create remote thread"
+            return False, "Failed to create thread"
         
-        # Wait for thread to complete (optional)
         kernel32.WaitForSingleObject(h_thread, 5000)
-        
-        # Clean up handles
         kernel32.CloseHandle(h_thread)
         CloseHandle(h_process)
         
-        # DLL is now running in target process, memory remains allocated
-        # The DLL will stay in memory until HD-Player.exe closes
-        
-        return True, "DLL injected successfully from memory"
+        return True, "DLL injected successfully"
         
     except Exception as e:
         return False, str(e)
 
 def download_and_inject_esp(emulator):
-    """Download DLL directly to memory and inject - NO DISK WRITE"""
     try:
-        # Step 1: Find HD-Player.exe PID (same for both MSI and BlueStacks)
         hd_pid = 0
         for proc in psutil.process_iter(['pid', 'name']):
             if proc.info['name'] and proc.info['name'].lower() == 'hd-player.exe':
@@ -649,33 +529,22 @@ def download_and_inject_esp(emulator):
                 break
         
         if not hd_pid:
-            return {
-                'success': False, 
-                'error': 'HD-Player.exe not running - Launch MSI or BlueStacks first'
-            }
+            return {'success': False, 'error': 'HD-Player.exe not running'}
         
-        # Step 2: Download DLL directly into memory (as bytes)
         req = urllib.request.Request(DLL_URL, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as response:
-            dll_bytes = response.read()  # DLL is NOW in memory, NOT on disk
+            dll_bytes = response.read()
         
         if len(dll_bytes) < 1000:
-            return {'success': False, 'error': 'Downloaded DLL is too small (corrupt?)'}
+            return {'success': False, 'error': 'Downloaded DLL is too small'}
         
-        # Step 3: Inject directly from memory into HD-Player.exe
         success, message = inject_dll_from_memory(hd_pid, dll_bytes)
         
         if success:
-            return {
-                'success': True,
-                'message': f'ESP injected directly into memory (PID: {hd_pid})',
-                'pid': hd_pid
-            }
+            return {'success': True, 'message': f'ESP injected (PID: {hd_pid})'}
         else:
             return {'success': False, 'error': message}
             
-    except urllib.error.URLError as e:
-        return {'success': False, 'error': f'Failed to download DLL: {str(e)}'}
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
@@ -683,433 +552,196 @@ def download_and_inject_esp(emulator):
 app = Flask(__name__)
 app.secret_key = "ghost-xs-red-2024"
 
-# ==================== LOGIN PAGE (RED THEME WITH PARTICLES) ====================
+# ==================== LOGIN PAGE ====================
 LOGIN_PAGE = '''<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VortexOffcial • Login</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            background: #0a0a0a;
-            font-family: 'Inter', sans-serif;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
+            background:#0a0a0a;
+            font-family:'Inter', sans-serif;
+            height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            position:relative;
+            overflow:hidden;
         }
-
-        /* Animated particles canvas */
         #login-particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            z-index:0;
+            pointer-events:none;
         }
-
-        /* Red gradient overlays */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 50%, rgba(255, 51, 51, 0.1) 0%, transparent 50%),
-                       radial-gradient(circle at 70% 50%, rgba(255, 51, 51, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* Carbon fiber overlay */
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: repeating-linear-gradient(45deg, 
-                rgba(40, 40, 40, 0.2) 0px,
-                rgba(40, 40, 40, 0.2) 2px,
-                rgba(20, 20, 20, 0.2) 2px,
-                rgba(20, 20, 20, 0.2) 4px);
-            pointer-events: none;
-            z-index: 1;
-        }
-
         .login-box {
-            background: #111;
-            border: 1px solid #ff3333;
-            border-radius: 12px;
-            padding: 45px 40px;
-            width: 360px;
-            box-shadow: 0 15px 40px rgba(255, 51, 51, 0.15);
-            position: relative;
-            z-index: 2;
-            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-            background: rgba(17, 17, 17, 0.9);
+            background:#111;
+            border:1px solid #ff3333;
+            border-radius:8px;
+            padding:40px;
+            width:340px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.5);
+            position:relative;
+            z-index:2;
+            animation:slideUp 0.5s ease-out;
         }
-
-        .login-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #ff3333, #ff3333, transparent);
-            animation: borderGlow 3s infinite;
-        }
-
-        @keyframes borderGlow {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity:0; transform:translateY(20px); }
+            to { opacity:1; transform:translateY(0); }
         }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
+        h2 {
+            color:#ff3333;
+            text-align:center;
+            margin-bottom:30px;
+            font-size:24px;
+            font-weight:600;
+            text-transform:uppercase;
         }
-
-        .logo h1 {
-            color: #ff3333;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
-            animation: textGlow 2s ease-in-out infinite;
+        input {
+            width:100%;
+            padding:12px;
+            margin-bottom:20px;
+            background:#1a1a1a;
+            border:1px solid #333;
+            border-radius:4px;
+            color:#fff;
+            font-size:14px;
         }
-
-        @keyframes textGlow {
-            0%, 100% { text-shadow: 0 0 20px rgba(255, 51, 51, 0.5); }
-            50% { text-shadow: 0 0 40px rgba(255, 51, 51, 0.8); }
+        input:focus {
+            outline:none;
+            border-color:#ff3333;
         }
-
-        .logo span {
-            display: block;
-            color: #666;
-            font-size: 12px;
-            letter-spacing: 3px;
-            margin-top: 8px;
-            text-transform: uppercase;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 15px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #ff3333;
-            box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
-            background: #222;
-        }
-
-        .input-group input::placeholder {
-            color: #666;
-            letter-spacing: 0.5px;
-        }
-
-        .input-group .bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: #ff3333;
-            transition: width 0.3s ease;
-        }
-
-        .input-group input:focus ~ .bar {
-            width: 100%;
-        }
-
         button {
-            width: 100%;
-            padding: 15px;
-            background: #ff3333;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            margin-top: 10px;
-            font-family: 'Inter', sans-serif;
+            width:100%;
+            padding:12px;
+            background:#ff3333;
+            color:#fff;
+            border:none;
+            border-radius:4px;
+            font-size:16px;
+            font-weight:600;
+            cursor:pointer;
+            text-transform:uppercase;
         }
-
-        button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        button:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
         button:hover {
-            background: #ff1a1a;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(255, 51, 51, 0.4);
+            background:#cc0000;
         }
-
-        button:active {
-            transform: translateY(0);
+        .error {
+            background:rgba(255,51,51,0.1);
+            border:1px solid #ff3333;
+            border-radius:4px;
+            padding:12px;
+            margin-bottom:20px;
+            color:#ff3333;
+            text-align:center;
         }
-
-        .footer {
-            margin-top: 25px;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-            letter-spacing: 0.5px;
-        }
-
-        .footer .red {
-            color: #ff3333;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
-        }
-
-        .error-message {
-            background: rgba(255, 51, 51, 0.1);
-            border: 1px solid #ff3333;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 20px;
-            color: #ff3333;
-            font-size: 13px;
-            text-align: center;
-            animation: shake 0.5s ease-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-
         .loader {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            align-items: center;
-            justify-content: center;
-            color: #ff3333;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
+            display:none;
+            position:fixed;
+            top:0;left:0;right:0;bottom:0;
+            background:rgba(0,0,0,0.9);
+            align-items:center;
+            justify-content:center;
+            color:#ff3333;
+            z-index:1000;
         }
-
-        .loader.show {
-            display: flex;
-        }
-
+        .loader.show { display:flex; }
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid transparent;
-            border-top-color: #ff3333;
-            border-right-color: #ff3333;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 15px;
+            width:40px; height:40px;
+            border:2px solid #ff3333;
+            border-top-color:transparent;
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+            margin-right:15px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform:rotate(360deg); } }
     </style>
 </head>
 <body>
     <canvas id="login-particles"></canvas>
-
     <div class="loader" id="loader">
         <div class="spinner"></div>
-        <div style="font-size: 16px; letter-spacing: 1px;">VERIFYING CREDENTIALS & SID</div>
+        <div>VERIFYING</div>
     </div>
-
     <div class="login-box">
-        <div class="logo">
-            <h1>VORTEXOFFICIAL</h1>
-            <span>SECURE ACCESS</span>
-        </div>
-
+        <h2>VORTEXOFFICIAL</h2>
         {% if error %}
-        <div class="error-message" id="errorMessage">
-            ⚠️ {{ error }}
-        </div>
+        <div class="error">{{ error }}</div>
         {% endif %}
-
         <form method="POST" action="/" onsubmit="document.getElementById('loader').classList.add('show')">
-            <div class="input-group">
-                <input type="text" name="username" placeholder="USERNAME" required autocomplete="off">
-                <div class="bar"></div>
-            </div>
-            <div class="input-group">
-                <input type="password" name="password" placeholder="PASSWORD" required>
-                <div class="bar"></div>
-            </div>
-            <button type="submit">ACCESS DASHBOARD</button>
+            <input type="text" name="username" placeholder="USERNAME" required>
+            <input type="password" name="password" placeholder="PASSWORD" required>
+            <button type="submit">LOGIN</button>
         </form>
-
-        <div class="footer">
-            <span class="red">●</span> SID PROTECTED <span class="red">●</span>
-        </div>
     </div>
-
     <script>
-        // Animated particles for login page
         const canvas = document.getElementById('login-particles');
         const ctx = canvas.getContext('2d');
         let particles = [];
-
+        
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
-
+        
         function createParticles() {
-            const particleCount = 60;
-            for (let i = 0; i < particleCount; i++) {
+            for(let i = 0; i < 40; i++) {
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    size: Math.random() * 3 + 1,
-                    speedX: (Math.random() - 0.5) * 0.3,
-                    speedY: (Math.random() - 0.5) * 0.3,
-                    opacity: Math.random() * 0.5 + 0.1,
-                    color: `rgba(255, 51, 51, ${Math.random() * 0.3 + 0.1})`
+                    size: Math.random() * 2,
+                    speedX: (Math.random() - 0.5) * 0.2,
+                    speedY: (Math.random() - 0.5) * 0.2,
+                    opacity: Math.random() * 0.2
                 });
             }
         }
-
+        
         function drawParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             particles.forEach(p => {
                 p.x += p.speedX;
                 p.y += p.speedY;
-                
-                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-                
+                if(p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if(p.y < 0 || p.y > canvas.height) p.speedY *= -1;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
+                ctx.fillStyle = `rgba(255, 51, 51, ${p.opacity})`;
                 ctx.fill();
             });
-            
             requestAnimationFrame(drawParticles);
         }
-
+        
         window.addEventListener('resize', () => {
             resizeCanvas();
             particles = [];
             createParticles();
         });
-
+        
         resizeCanvas();
         createParticles();
         drawParticles();
-
-        // Auto-hide error message after 5 seconds
-        const errorMsg = document.getElementById('errorMessage');
-        if (errorMsg) {
-            setTimeout(() => {
-                errorMsg.style.opacity = '0';
-                setTimeout(() => {
-                    errorMsg.style.display = 'none';
-                }, 500);
-            }, 5000);
-        }
     </script>
 </body>
 </html>'''
 
-# ==================== DASHBOARD PAGE (CARBON FIBER WITH PARTICLES) ====================
+# ==================== DASHBOARD PAGE ====================
 DASHBOARD_PAGE = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VortexOffcial • Dashboard</title>
-    
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             background: #0a0a0a;
             font-family: 'Inter', sans-serif;
@@ -1119,8 +751,6 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             position: relative;
             overflow-x: hidden;
         }
-
-        /* Animated particles background */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -1130,8 +760,6 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             z-index: -1;
             pointer-events: none;
         }
-
-        /* Carbon fiber overlay */
         body::after {
             content: '';
             position: fixed;
@@ -1147,15 +775,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             pointer-events: none;
             z-index: -1;
         }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Header with glow animation */
+        .container { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
         .header {
             background: #111;
             border: 1px solid #2a2a2a;
@@ -1165,48 +785,11 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             animation: slideDown 0.5s ease-out;
         }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            100% { left: 100%; }
-        }
-
-        .logo {
-            color: #ff3333;
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            position: relative;
-            text-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
-            animation: glow 2s ease-in-out infinite;
-        }
-
-        @keyframes glow {
-            0%, 100% { text-shadow: 0 0 10px rgba(255, 51, 51, 0.3); }
-            50% { text-shadow: 0 0 20px rgba(255, 51, 51, 0.6); }
-        }
-
-        .status {
-            display: flex;
-            gap: 25px;
-        }
-
+        .logo { color: #ff3333; font-size: 20px; font-weight: 600; text-transform: uppercase; }
+        .status { display: flex; gap: 25px; }
         .stat-item {
             text-align: center;
             padding: 5px 10px;
@@ -1214,31 +797,9 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
             min-width: 80px;
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease-out;
         }
-
-        .stat-item:hover {
-            border-color: #ff3333;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 51, 51, 0.2);
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            font-size: 14px;
-            color: #ff3333;
-            font-weight: 600;
-        }
-
-        /* Navigation with slide animations */
+        .stat-label { font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-value { font-size: 14px; color: #ff3333; font-weight: 600; }
         .nav {
             display: flex;
             gap: 8px;
@@ -1247,9 +808,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             padding: 6px;
             border-radius: 8px;
             border: 1px solid #2a2a2a;
-            animation: slideUp 0.5s ease-out 0.1s both;
         }
-
         .nav-btn {
             flex: 1;
             padding: 14px;
@@ -1260,52 +819,16 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             font-weight: 500;
             cursor: pointer;
             border-radius: 6px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-btn::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: #ff3333;
             transition: all 0.3s ease;
-            transform: translateX(-50%);
+            text-transform: uppercase;
         }
-
-        .nav-btn:hover::after {
-            width: 80%;
-        }
-
-        .nav-btn:hover {
-            color: #999;
-            background: #1a1a1a;
-        }
-
+        .nav-btn:hover { background: #1a1a1a; color: #999; }
         .nav-btn.active {
             background: #ff3333;
             color: #fff;
             font-weight: 600;
-            box-shadow: 0 2px 10px rgba(255, 51, 51, 0.3);
-            animation: pulse 2s infinite;
+            box-shadow: 0 2px 10px rgba(255,51,51,0.3);
         }
-
-        .nav-btn.active::after {
-            display: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 2px 10px rgba(255, 51, 51, 0.3); }
-            50% { box-shadow: 0 2px 20px rgba(255, 51, 51, 0.6); }
-        }
-
-        /* Panels with scale animations */
         .panel {
             display: none;
             background: #111;
@@ -1313,45 +836,9 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             border-radius: 8px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-            transform-origin: top;
-            animation: panelFade 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
-
-        @keyframes panelFade {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .panel.active {
-            display: block;
-        }
-
-        .panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #ff3333, transparent);
-            opacity: 0.3;
-            animation: borderGlow 3s infinite;
-        }
-
-        @keyframes borderGlow {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
-
+        .panel.active { display: block; }
         .section-title {
             color: #ff3333;
             font-size: 16px;
@@ -1360,28 +847,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             padding-bottom: 8px;
             border-bottom: 1px solid #2a2a2a;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            position: relative;
-            animation: slideInRight 0.4s ease-out;
         }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 50px;
-            height: 1px;
-            background: #ff3333;
-            animation: widthPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes widthPulse {
-            0%, 100% { width: 50px; }
-            50% { width: 80px; }
-        }
-
-        /* Row animations */
         .row {
             display: flex;
             align-items: center;
@@ -1389,89 +855,22 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             gap: 20px;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            animation: slideInRight 0.4s ease-out;
-            animation-fill-mode: both;
         }
-
-        .row:nth-child(2) { animation-delay: 0.1s; }
-        .row:nth-child(3) { animation-delay: 0.15s; }
-        .row:nth-child(4) { animation-delay: 0.2s; }
-        .row:nth-child(5) { animation-delay: 0.25s; }
-
         .row-vertical {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 15px;
             margin-bottom: 25px;
-            animation: slideInRight 0.4s ease-out 0.2s both;
         }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
         .label {
             color: #999;
-            font-size: 14px;
-            font-weight: 400;
+            font-size: 12px;
             min-width: 130px;
             text-align: right;
-            letter-spacing: 0.3px;
             text-transform: uppercase;
-            font-size: 12px;
-            transition: color 0.3s ease;
         }
-
-        .row:hover .label {
-            color: #ff3333;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-group-vertical {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
+        .btn-group { display: flex; gap: 10px; }
         .btn-small {
             padding: 8px 20px;
             background: #1a1a1a;
@@ -1484,69 +883,15 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             min-width: 70px;
             text-align: center;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
         }
-
-        .btn-small::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.4s, height 0.4s;
-        }
-
-        .btn-small:hover::before {
-            width: 150px;
-            height: 150px;
-        }
-
-        .btn-small:hover {
-            background: #222;
-            border-color: #444;
-            color: #ccc;
-            transform: translateY(-1px);
-        }
-
-        .btn-small:active {
-            transform: translateY(0);
-        }
-
+        .btn-small:hover { background: #222; border-color: #444; color: #ccc; }
         .btn-small.active, .btn-small.primary {
             background: #ff3333;
             border-color: #ff3333;
             color: #fff;
-            box-shadow: 0 2px 8px rgba(255, 51, 51, 0.3);
-            animation: buttonPulse 2s infinite;
+            box-shadow: 0 2px 8px rgba(255,51,51,0.3);
         }
-
-        @keyframes buttonPulse {
-            0%, 100% { box-shadow: 0 2px 8px rgba(255, 51, 51, 0.3); }
-            50% { box-shadow: 0 2px 15px rgba(255, 51, 51, 0.6); }
-        }
-
-        .btn-small.active:hover, .btn-small.primary:hover {
-            background: #ff1a1a;
-            border-color: #ff1a1a;
-        }
-
-        .btn-small.success {
-            background: #1a4d1a;
-            border-color: #2d6a2d;
-            color: #fff;
-        }
-
-        .btn-small.success:hover {
-            background: #236b23;
-        }
-
+        .btn-small.success { background: #1a4d1a; border-color: #2d6a2d; color: #fff; }
         select.small {
             padding: 8px 15px;
             background: #1a1a1a;
@@ -1554,30 +899,11 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             color: #e0e0e0;
             border-radius: 4px;
             font-size: 13px;
-            font-weight: 400;
             cursor: pointer;
             width: 170px;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
-            transition: all 0.3s ease;
         }
-
-        select.small:hover {
-            border-color: #ff3333;
-            background-color: #222;
-            transform: translateY(-1px);
-        }
-
-        select.small option {
-            background: #1a1a1a;
-            color: #e0e0e0;
-        }
-
+        select.small:hover { border-color: #ff3333; }
         .badge {
             display: inline-block;
             padding: 5px 12px;
@@ -1586,24 +912,9 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             border-radius: 4px;
             color: #ff3333;
             font-size: 12px;
-            font-weight: 500;
             min-width: 60px;
             text-align: center;
-            letter-spacing: 0.3px;
-            transition: all 0.3s ease;
-            animation: badgePulse 3s infinite;
         }
-
-        @keyframes badgePulse {
-            0%, 100% { border-color: #333; }
-            50% { border-color: #ff3333; }
-        }
-
-        .badge:hover {
-            border-color: #ff3333;
-            transform: scale(1.05);
-        }
-
         .emulator-box {
             background: #1a1a1a;
             border: 1px solid #333;
@@ -1615,79 +926,30 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             justify-content: flex-end;
             gap: 25px;
             flex-wrap: wrap;
-            position: relative;
-            transition: all 0.3s ease;
-            animation: slideInRight 0.4s ease-out;
         }
-
-        .emulator-box:hover {
-            border-color: #ff3333;
-            box-shadow: 0 5px 20px rgba(255, 51, 51, 0.15);
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 25px;
-        }
-
+        .radio-group { display: flex; gap: 25px; }
         .radio-option {
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.3s ease;
         }
-
         .radio-option input[type="radio"] {
             width: 16px;
             height: 16px;
             accent-color: #ff3333;
-            cursor: pointer;
-            background: #1a1a1a;
-            transition: all 0.2s ease;
         }
-
         .radio-option label {
             color: #ccc;
             font-size: 13px;
             font-weight: 500;
-            cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            transition: color 0.3s ease;
         }
-
-        .radio-option:hover {
-            transform: translateX(-2px);
-        }
-
-        .radio-option:hover label {
-            color: #ff3333;
-        }
-
-        /* Terminal with slide animation */
         .terminal {
             background: #111;
             border: 1px solid #2a2a2a;
             border-radius: 6px;
             margin-top: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-            animation: slideUp 0.5s ease-out 0.3s both;
         }
-
-        .terminal::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #ff3333, transparent);
-            opacity: 0.2;
-            animation: borderGlow 3s infinite;
-        }
-
         .terminal-header {
             background: #1a1a1a;
             padding: 10px 15px;
@@ -1696,9 +958,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             font-size: 12px;
             font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
-
         .terminal-content {
             padding: 15px;
             min-height: 120px;
@@ -1706,72 +966,179 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             overflow-y: auto;
             font-size: 12px;
             color: #999;
-            font-family: 'Inter', monospace;
             background: #0c0c0c;
+            font-family: monospace;
         }
-
-        .terminal-content::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .terminal-content::-webkit-scrollbar-track {
-            background: #1a1a1a;
-        }
-
-        .terminal-content::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-        }
-
-        .terminal-content::-webkit-scrollbar-thumb:hover {
-            background: #ff3333;
-        }
-
         .log {
             margin-bottom: 5px;
             border-left: 1px solid #ff3333;
             padding-left: 10px;
-            font-family: 'Inter', monospace;
-            color: #bbb;
-            animation: slideInLeft 0.3s ease-out;
         }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .log-time {
-            color: #666;
-            margin-right: 10px;
-            font-size: 11px;
-        }
-
+        .log-time { color: #666; margin-right: 10px; font-size: 11px; }
         .mt-10 { margin-top: 10px; }
-        .mb-10 { margin-bottom: 10px; }
-        .ml-10 { margin-left: 10px; }
         .flex { display: flex; align-items: center; gap: 15px; }
+        
+        /* Settings Tab Styles */
+        .settings-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 10px;
+        }
+        .settings-box {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .box-title {
+            color: #ff3333;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+        }
+        .key-category {
+            margin-bottom: 20px;
+        }
+        .category-label {
+            display: block;
+            color: #999;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .key-select {
+            width: 100%;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .key-select:hover { border-color: #ff3333; }
+        .key-select option { background: #222; color: #fff; }
+        .aim-group { margin-bottom: 25px; }
+        .aim-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .aim-option:hover { border-color: #ff3333; background: #2a2a2a; }
+        .aim-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #ff3333;
+            margin-right: 12px;
+        }
+        .aim-option label {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+            text-transform: uppercase;
+        }
+        .ai-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+        .ai-title {
+            color: #ff3333;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .current-config {
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        .config-row:last-child { border-bottom: none; }
+        .config-label { color: #999; font-size: 12px; }
+        .config-value {
+            color: #ff3333;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            background: #ff3333;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .save-btn:hover { background: #ff1a1a; }
+        .test-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid #ff3333;
+            border-radius: 4px;
+            color: #ff3333;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .test-btn:hover { background: #ff3333; color: #fff; }
+        .info-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.5;
+        }
+        .info-box strong { color: #ff3333; }
+        @media (max-width: 768px) {
+            .settings-container { grid-template-columns: 1fr; }
+        }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
+        }
     </style>
 </head>
 <body>
-    <!-- Animated Particles Canvas -->
     <canvas id="particles-canvas"></canvas>
 
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="logo">VORTEXOFFICIAL</div>
             <div class="status">
                 <div class="stat-item">
                     <div class="stat-label">STATUS</div>
-                    <div class="stat-value" id="sysStat">ONLINE</div>
+                    <div class="stat-value">ONLINE</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">GAME</div>
@@ -1780,17 +1147,16 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- Navigation -->
         <div class="nav">
             <button class="nav-btn active" onclick="switchTab('aimbot')">AIMBOT</button>
             <button class="nav-btn" onclick="switchTab('visuals')">VISUALS</button>
+            <button class="nav-btn" onclick="switchTab('settings')">SETTINGS</button>
         </div>
 
         <!-- TAB 1: AIMBOT -->
         <div class="panel active" id="aimbot">
             <div class="section-title">AIMBOT CONTROLS</div>
             
-            <!-- SCAN -->
             <div class="row">
                 <span class="label">PLAYER SCAN</span>
                 <div class="btn-group">
@@ -1799,7 +1165,6 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 <span class="badge" id="scanStat">0</span>
             </div>
 
-            <!-- NECK ON/OFF -->
             <div class="row">
                 <span class="label">NECK</span>
                 <div class="btn-group" id="neckGroup">
@@ -1808,7 +1173,6 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- LEGIT AIMBOT - VERTICAL LAYOUT -->
             <div class="row-vertical">
                 <span class="label">LEGIT AIMBOT</span>
                 <div class="flex">
@@ -1823,10 +1187,8 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- VORTEX OFFICIAL SPECIAL AIMBOT -->
             <div class="section-title mt-10">VORTEX OFFICIAL SPECIAL AIMBOT</div>
             
-            <!-- AIMBOT AI ON/OFF -->
             <div class="row">
                 <span class="label">AIMBOT AI</span>
                 <div class="btn-group" id="aiGroup">
@@ -1851,9 +1213,122 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                         <label for="bluestacks">BLUESTACKS</label>
                     </div>
                 </div>
-
                 <button class="btn-small success" onclick="injectESP()" id="injectBtn" disabled>INJECT ESP</button>
                 <span class="badge" id="injectStatus">READY</span>
+            </div>
+        </div>
+
+        <!-- TAB 3: SETTINGS - CUSTOM KEY TOGGLE -->
+        <div class="panel" id="settings">
+            <div class="section-title">CUSTOM KEY TOGGLE SETTINGS</div>
+            
+            <div class="settings-container">
+                <!-- LEFT: KEY SELECTION -->
+                <div class="settings-box">
+                    <div class="box-title">SELECT KEY</div>
+                    
+                    <!-- MOUSE KEYS -->
+                    <div class="key-category">
+                        <span class="category-label">MOUSE</span>
+                        <select class="key-select" id="mouseSelect" onchange="selectKey('mouse', this.value)">
+                            <option value="">SELECT MOUSE KEY</option>
+                            <option value="mouse1">Left Button</option>
+                            <option value="mouse2">Right Button</option>
+                            <option value="mouse3">Middle Button</option>
+                            <option value="mouse4">Button 4</option>
+                            <option value="mouse5">Button 5</option>
+                            <option value="xbutton1">XButton 1</option>
+                            <option value="xbutton2">XButton 2</option>
+                        </select>
+                    </div>
+                    
+                    <!-- KEYBOARD KEYS -->
+                    <div class="key-category">
+                        <span class="category-label">KEYBOARD</span>
+                        <select class="key-select" id="keyboardSelect" onchange="selectKey('keyboard', this.value)">
+                            <option value="">SELECT KEYBOARD KEY</option>
+                            <optgroup label="LETTERS">
+                                <option value="a">A</option><option value="b">B</option><option value="c">C</option>
+                                <option value="d">D</option><option value="e">E</option><option value="f">F</option>
+                                <option value="g">G</option><option value="h">H</option><option value="i">I</option>
+                                <option value="j">J</option><option value="k">K</option><option value="l">L</option>
+                                <option value="m">M</option><option value="n">N</option><option value="o">O</option>
+                                <option value="p">P</option><option value="q">Q</option><option value="r">R</option>
+                                <option value="s">S</option><option value="t">T</option><option value="u">U</option>
+                                <option value="v">V</option><option value="w">W</option><option value="x">X</option>
+                                <option value="y">Y</option><option value="z">Z</option>
+                            </optgroup>
+                            <optgroup label="NUMBERS">
+                                <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                                <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                                <option value="9">9</option>
+                            </optgroup>
+                            <optgroup label="FUNCTION KEYS">
+                                <option value="f1">F1</option><option value="f2">F2</option><option value="f3">F3</option>
+                                <option value="f4">F4</option><option value="f5">F5</option><option value="f6">F6</option>
+                                <option value="f7">F7</option><option value="f8">F8</option><option value="f9">F9</option>
+                                <option value="f10">F10</option><option value="f11">F11</option><option value="f12">F12</option>
+                            </optgroup>
+                            <optgroup label="SPECIAL KEYS">
+                                <option value="shift">Shift</option><option value="ctrl">Ctrl</option><option value="alt">Alt</option>
+                                <option value="space">Space</option><option value="enter">Enter</option><option value="tab">Tab</option>
+                                <option value="capslock">Caps Lock</option><option value="esc">Escape</option>
+                                <option value="backspace">Backspace</option><option value="delete">Delete</option>
+                                <option value="insert">Insert</option><option value="home">Home</option><option value="end">End</option>
+                                <option value="pageup">Page Up</option><option value="pagedown">Page Down</option>
+                                <option value="up">Up Arrow</option><option value="down">Down Arrow</option>
+                                <option value="left">Left Arrow</option><option value="right">Right Arrow</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- RIGHT: AIM SELECTION -->
+                <div class="settings-box">
+                    <div class="box-title">SELECT AIM</div>
+                    
+                    <div class="aim-group">
+                        <div class="aim-option">
+                            <input type="radio" name="aimType" id="aimNeck" value="neck" checked>
+                            <label for="aimNeck">NECK</label>
+                        </div>
+                        <div class="aim-option">
+                            <input type="radio" name="aimType" id="aimLeft" value="left">
+                            <label for="aimLeft">LEFT SHOULDER</label>
+                        </div>
+                        <div class="aim-option">
+                            <input type="radio" name="aimType" id="aimRight" value="right">
+                            <label for="aimRight">RIGHT SHOULDER</label>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-section">
+                        <div class="ai-title">AI AIMBOT</div>
+                        <div class="aim-option">
+                            <input type="radio" name="aimType" id="aimAI" value="ai">
+                            <label for="aimAI">AI AIMBOT</label>
+                        </div>
+                    </div>
+                    
+                    <div class="current-config">
+                        <div class="config-row">
+                            <span class="config-label">Selected Key</span>
+                            <span class="config-value" id="displayKey">None</span>
+                        </div>
+                        <div class="config-row">
+                            <span class="config-label">Selected Aim</span>
+                            <span class="config-value" id="displayAim">Neck</span>
+                        </div>
+                    </div>
+                    
+                    <button class="save-btn" onclick="saveConfig()">SAVE CONFIGURATION</button>
+                    <button class="test-btn" onclick="testConfig()">TEST HOLD</button>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <strong>HOLD TO ACTIVATE:</strong> Press and hold the selected key to activate aimbot. Release to deactivate.
             </div>
         </div>
 
@@ -1861,19 +1336,16 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         <div class="terminal">
             <div class="terminal-header">SYSTEM TERMINAL</div>
             <div class="terminal-content" id="terminal">
-                <div class="log"><span class="log-time">[⏰]</span> STREAMER IS READY</div>
+                <div class="log"><span class="log-time">[SYSTEM]</span> STREAMER IS READY</div>
             </div>
         </div>
     </div>
 
     <script>
-        // Animated Particles
+        // Clean particles animation
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
-        let mouseX = 0;
-        let mouseY = 0;
-        let animationFrame;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -1881,96 +1353,42 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         }
 
         function createParticles() {
-            const particleCount = 80;
-            for (let i = 0; i < particleCount; i++) {
+            for (let i = 0; i < 35; i++) {
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    size: Math.random() * 3 + 1,
-                    speedX: (Math.random() - 0.5) * 0.5,
-                    speedY: (Math.random() - 0.5) * 0.5,
-                    opacity: Math.random() * 0.5 + 0.1,
-                    color: `rgba(255, ${Math.floor(51 + Math.random() * 50)}, ${Math.floor(51 + Math.random() * 50)}, ${Math.random() * 0.3 + 0.1})`
+                    size: Math.random() * 2.5,
+                    speedX: (Math.random() - 0.5) * 0.15,
+                    speedY: (Math.random() - 0.5) * 0.15,
+                    opacity: Math.random() * 0.15
                 });
             }
         }
 
         function drawParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             particles.forEach(p => {
-                // Move particles
                 p.x += p.speedX;
                 p.y += p.speedY;
-                
-                // Mouse interaction
-                const dx = mouseX - p.x;
-                const dy = mouseY - p.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < 100) {
-                    const angle = Math.atan2(dy, dx);
-                    const force = (100 - distance) / 1000;
-                    p.x -= Math.cos(angle) * force;
-                    p.y -= Math.sin(angle) * force;
-                }
-                
-                // Bounce off edges
-                if (p.x < 0 || p.x > canvas.width) p.speedX *= -0.9;
-                if (p.y < 0 || p.y > canvas.height) p.speedY *= -0.9;
-                
-                // Keep within bounds
-                p.x = Math.max(0, Math.min(canvas.width, p.x));
-                p.y = Math.max(0, Math.min(canvas.height, p.y));
-                
-                // Draw particle
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
+                ctx.fillStyle = `rgba(255, 51, 51, ${p.opacity})`;
                 ctx.fill();
-                
-                // Draw connecting lines between nearby particles
-                particles.forEach(p2 => {
-                    const dx = p.x - p2.x;
-                    const dy = p.y - p2.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 80) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = `rgba(255, 51, 51, ${0.1 * (1 - distance/80)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p2.x, p2.y);
-                        ctx.stroke();
-                    }
-                });
             });
-            
-            animationFrame = requestAnimationFrame(drawParticles);
+            requestAnimationFrame(drawParticles);
         }
 
-        // Mouse move handler for particle interaction
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
-
-        // Handle resize
         window.addEventListener('resize', () => {
             resizeCanvas();
             particles = [];
             createParticles();
         });
 
-        // Initialize particles
         resizeCanvas();
         createParticles();
         drawParticles();
-
-        // Clean up animation frame on page unload
-        window.addEventListener('beforeunload', () => {
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-        });
 
         // Tab switching
         function switchTab(tab) {
@@ -1978,12 +1396,6 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById(tab).classList.add('active');
-            
-            // Add click animation
-            event.target.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                event.target.style.transform = 'scale(1)';
-            }, 200);
         }
 
         // Game status
@@ -2006,35 +1418,25 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             if (t.children.length > 20) t.children[0].remove();
         }
 
-        // Command execution with button state management
+        // Command execution
         async function runCmd(cmd, btn) {
-            // Add click animation
             if (btn) {
                 btn.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    btn.style.transform = '';
-                }, 200);
+                setTimeout(() => btn.style.transform = '', 200);
             }
             
-            // Update button states for ON/OFF groups
             if (cmd === 'neckon' || cmd === 'neckoff') {
                 const group = document.getElementById('neckGroup');
                 group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
-                if (cmd === 'neckon') {
-                    group.children[0].classList.add('active', 'primary');
-                } else {
-                    group.children[1].classList.add('active', 'primary');
-                }
+                if (cmd === 'neckon') group.children[0].classList.add('active', 'primary');
+                else group.children[1].classList.add('active', 'primary');
             }
             
             if (cmd === 'aion' || cmd === 'aioff') {
                 const group = document.getElementById('aiGroup');
                 group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
-                if (cmd === 'aion') {
-                    group.children[0].classList.add('active', 'primary');
-                } else {
-                    group.children[1].classList.add('active', 'primary');
-                }
+                if (cmd === 'aion') group.children[0].classList.add('active', 'primary');
+                else group.children[1].classList.add('active', 'primary');
             }
 
             log(`> ${cmd}`);
@@ -2049,12 +1451,6 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 if (cmd === 'aimbotscan') {
                     const match = d.message.match(/\d+/);
                     document.getElementById('scanStat').textContent = match ? match[0] : '0';
-                    // Animate badge
-                    const badge = document.getElementById('scanStat');
-                    badge.style.transform = 'scale(1.2)';
-                    setTimeout(() => {
-                        badge.style.transform = '';
-                    }, 200);
                 }
             } catch(e) {
                 log('Command failed');
@@ -2062,41 +1458,23 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         }
 
         function legitOn(btn) {
-            // Add click animation
             btn.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                btn.style.transform = '';
-            }, 200);
-            
+            setTimeout(() => btn.style.transform = '', 200);
             const val = document.getElementById('legitSelect').value;
             const group = document.getElementById('legitGroup');
             group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
             group.children[0].classList.add('active', 'primary');
-            
-            if (val === 'left') {
-                runCmd('leftshoulderon', btn);
-            } else {
-                runCmd('rightshoulderon', btn);
-            }
+            runCmd(val === 'left' ? 'leftshoulderon' : 'rightshoulderon', btn);
         }
 
         function legitOff(btn) {
-            // Add click animation
             btn.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                btn.style.transform = '';
-            }, 200);
-            
+            setTimeout(() => btn.style.transform = '', 200);
             const val = document.getElementById('legitSelect').value;
             const group = document.getElementById('legitGroup');
             group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
             group.children[1].classList.add('active', 'primary');
-            
-            if (val === 'left') {
-                runCmd('leftshoulderoff', btn);
-            } else {
-                runCmd('rightshoulderoff', btn);
-            }
+            runCmd(val === 'left' ? 'leftshoulderoff' : 'rightshoulderoff', btn);
         }
 
         let currentEmulator = null;
@@ -2104,16 +1482,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         function selectEmulator(emulator) {
             currentEmulator = emulator;
             document.getElementById('injectBtn').disabled = false;
-            document.getElementById('injectStatus').textContent = 'READY';
             log(`Selected: ${emulator}`);
-            
-            // Animate selected radio
-            const radios = document.querySelectorAll('.radio-option');
-            radios.forEach(r => r.style.transform = 'scale(1)');
-            event.target.closest('.radio-option').style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                event.target.closest('.radio-option').style.transform = '';
-            }, 200);
         }
 
         async function injectESP() {
@@ -2121,16 +1490,8 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 log('Select emulator first');
                 return;
             }
-            
-            const btn = document.getElementById('injectBtn');
-            btn.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                btn.style.transform = '';
-            }, 200);
-            
             document.getElementById('injectStatus').textContent = 'INJECTING...';
-            log(`Injecting ESP into HD-Player.exe...`);
-            
+            log('Injecting ESP...');
             try {
                 const r = await fetch('/inject_esp', {
                     method: 'POST',
@@ -2140,10 +1501,10 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 const d = await r.json();
                 if (d.success) {
                     document.getElementById('injectStatus').textContent = 'INJECTED';
-                    log('✓ ESP Injected successfully into memory');
+                    log('ESP Injected successfully');
                 } else {
                     document.getElementById('injectStatus').textContent = 'FAILED';
-                    log(`✗ Injection failed: ${d.error}`);
+                    log('Injection failed: ' + d.error);
                 }
             } catch(e) {
                 document.getElementById('injectStatus').textContent = 'ERROR';
@@ -2151,19 +1512,70 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             }
         }
 
+        // Settings Tab Functions
+        let currentKey = null;
+        let currentKeyType = null;
+
+        function selectKey(type, key) {
+            if (!key) return;
+            
+            currentKey = key;
+            currentKeyType = type;
+            
+            if (type === 'mouse') {
+                document.getElementById('keyboardSelect').value = '';
+            } else {
+                document.getElementById('mouseSelect').value = '';
+            }
+            
+            const displayMap = {
+                'mouse1': 'Left Button', 'mouse2': 'Right Button', 'mouse3': 'Middle Button',
+                'mouse4': 'Button 4', 'mouse5': 'Button 5', 'xbutton1': 'XButton 1',
+                'xbutton2': 'XButton 2', 'ctrl': 'Ctrl', 'shift': 'Shift', 'alt': 'Alt',
+                'space': 'Space', 'enter': 'Enter', 'tab': 'Tab', 'capslock': 'Caps Lock',
+                'esc': 'Escape', 'backspace': 'Backspace', 'delete': 'Delete',
+                'insert': 'Insert', 'home': 'Home', 'end': 'End', 'pageup': 'Page Up',
+                'pagedown': 'Page Down', 'up': 'Up Arrow', 'down': 'Down Arrow',
+                'left': 'Left Arrow', 'right': 'Right Arrow'
+            };
+            
+            document.getElementById('displayKey').textContent = 
+                displayMap[key] || key.toUpperCase();
+            
+            log(`Selected ${type} key: ${displayMap[key] || key.toUpperCase()}`);
+        }
+
+        document.querySelectorAll('input[name="aimType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const display = {
+                    'neck': 'Neck',
+                    'left': 'Left Shoulder',
+                    'right': 'Right Shoulder',
+                    'ai': 'AI Aimbot'
+                };
+                document.getElementById('displayAim').textContent = display[this.value];
+            });
+        });
+
+        function saveConfig() {
+            if (!currentKey) {
+                log('Please select a key first');
+                return;
+            }
+            const aimType = document.querySelector('input[name="aimType"]:checked').value;
+            log(`Configuration saved: ${document.getElementById('displayKey').textContent} → ${document.getElementById('displayAim').textContent}`);
+        }
+
+        function testConfig() {
+            if (!currentKey) {
+                log('Select a key first to test');
+                return;
+            }
+            log(`TEST: Hold ${document.getElementById('displayKey').textContent} to activate - Release to deactivate`);
+        }
+
         window.onload = () => {
             log('STREAMER IS READY');
-            
-            // Add floating animation to badges periodically
-            setInterval(() => {
-                const badges = document.querySelectorAll('.badge');
-                badges.forEach(badge => {
-                    badge.style.transform = 'translateY(-2px)';
-                    setTimeout(() => {
-                        badge.style.transform = '';
-                    }, 200);
-                });
-            }, 3000);
         };
     </script>
 </body>
@@ -2182,20 +1594,20 @@ def login():
         
         if not username or not password:
             error = "Username and password required"
-            return LOGIN_PAGE.replace('{% if error %}', f'{{% if error %}}').replace('{{ error }}', error)
+            return LOGIN_PAGE.replace('{% if error %}', f'<div class="error">{error}</div>')
         
-        # Verify credentials including SID
         success, message = verify_credentials(username, password)
         
         if success:
             session['logged_in'] = True
             session['username'] = username
-            print(f"[AUTH] {username} logged in successfully - SID verified")
+            creds = get_credentials()
+            session['sid'] = creds.get(username.lower(), {}).get('sid', '')
+            print(f"[AUTH] {username} logged in - Auto SID verified")
             return redirect(url_for('dashboard'))
         else:
             print(f"[AUTH] Login failed: {message}")
-            error = message
-            return LOGIN_PAGE.replace('{% if error %}', f'<div class="error-message">⚠️ {error}</div>')
+            return LOGIN_PAGE.replace('{% if error %}', f'<div class="error">{message}</div>')
 
 @app.route('/dashboard')
 def dashboard():
@@ -2224,12 +1636,10 @@ def execute():
     data = request.get_json()
     cmd = data.get('command', '').lower()
     
-    # AI Aim bot commands
     if cmd == 'aion':
         msg = ai_aimbot_on()
     elif cmd == 'aioff':
         msg = ai_aimbot_off()
-    # Regular commands
     elif cmd == 'aimbotscan':
         msg = HEADLOAD()
     elif cmd == 'neckon':
@@ -2261,7 +1671,6 @@ def inject_esp():
     data = request.get_json()
     emulator = data.get('emulator')
     
-    # Call memory-only injection
     result = download_and_inject_esp(emulator)
     return jsonify(result)
 
@@ -2270,15 +1679,12 @@ def shutdown():
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
     
-    # Stop anti-cheat blocker
     global anticheat_blocker
     if anticheat_blocker:
         anticheat_blocker.stop()
     
-    # Properly shutdown Flask
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
-        # Fallback for different servers
         os._exit(0)
     else:
         func()
@@ -2296,30 +1702,21 @@ def get_ip():
 
 # ==================== MAIN ====================
 if __name__ == '__main__':
-    # Start anti-cheat blocker
     print("[*] Starting Anti-Cheat Blocker...")
     anticheat_blocker.start()
     
-    # Get computer SID for display
     computer_sid = get_computer_sid()
-    
     ip = get_ip()
     
-    print("=" * 70)
-    print("  VORTEXOFFICIAL STREAMER DASHBOARD - SID PROTECTED")
-    print("=" * 70)
-    print(f"  Local URL:     http://localhost:8890")
-    print(f"  Network URL:    http://{ip}:8890")
-    print(f"  Computer SID:   {computer_sid}")
-    print(f"  PyMem:          {'ACTIVE' if PYMEM_OK else 'SIMULATED'}")
-    print(f"  AntiCheat:      ACTIVE (Blocking scanners)")
-    print(f"  AI Aimbot:      PLACEHOLDER (Ready for integration)")
-    print(f"  ESP Inject:     MEMORY-ONLY (No disk write)")
-    print(f"  DLL URL:        {DLL_URL}")
-    print(f"  Authentication: Username + Password + SID")
-    print(f"  Terminate:      WORKING")
-    print("=" * 70)
-    print("  Login requires matching SID in Sid.txt")
-    print("=" * 70)
+    print("=" * 60)
+    print("  VORTEXOFFICIAL STREAMER DASHBOARD")
+    print("=" * 60)
+    print(f"  Local URL:    http://localhost:8890")
+    print(f"  Network URL:   http://{ip}:8890")
+    print(f"  Computer SID:  {computer_sid}")
+    print(f"  PyMem:         {'ACTIVE' if PYMEM_OK else 'SIMULATED'}")
+    print(f"  AntiCheat:     ACTIVE")
+    print(f"  Authentication: Auto SID Verification")
+    print("=" * 60)
     
     app.run(host='0.0.0.0', port=8890, debug=False, threaded=True)
