@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# GHOST-XS - HACKER GREEN EDITION
+# GHOST-XS - RED EDITION WITH WORKING TERMINATE
 # Runs on http://localhost:8890
 
 import os
@@ -54,7 +54,7 @@ def parse_creds(content):
             current = None
     return creds
 
-# ==================== MEMORY FUNCTIONS (from your Memory.py) ====================
+# ==================== MEMORY FUNCTIONS ====================
 try:
     from pymem import Pymem
     from pymem.memory import read_bytes, write_bytes
@@ -68,12 +68,12 @@ except ImportError:
 aimbot_addresses = []
 original_value = []
 aim_legit_active = False
-aim_legit_mode = "hold"  # "hold" or "toggle"
-aim_legit_key = "xbutton1"  # Default mouse button
+aim_legit_mode = "hold"
+aim_legit_key = "xbutton1"
 aim_legit_target = "neck"
 
 def mkp(aob: str):
-    """Pattern converter - exactly from your Memory.py"""
+    """Pattern converter"""
     if '??' in aob:
         if aob.startswith("??"):
             aob = f" {aob}"
@@ -87,7 +87,7 @@ def mkp(aob: str):
         return bytes(f"\\x{m}".encode())
 
 def HEADLOAD():
-    """Scan for players - from your Memory.py"""
+    """Scan for players"""
     if not PYMEM_OK:
         return "[SIMULATED] Player scan completed"
     try:
@@ -113,7 +113,7 @@ def HEADLOAD():
             pass
 
 def HEADON():
-    """Neck aim - from your Memory.py"""
+    """Neck aim"""
     global original_value
     if not PYMEM_OK or not aimbot_addresses:
         return "[SIMULATED] Neck aim enabled"
@@ -134,7 +134,7 @@ def HEADON():
             pass
 
 def HEADOFF():
-    """Disable aimbot - from your Memory.py"""
+    """Disable aimbot"""
     if not PYMEM_OK or not original_value:
         return "[SIMULATED] Aim disabled"
     try:
@@ -151,7 +151,7 @@ def HEADOFF():
             pass
 
 def RIGHTSHOULDERON():
-    """Right shoulder aim - from your Memory.py"""
+    """Right shoulder aim"""
     global original_value
     if not PYMEM_OK or not aimbot_addresses:
         return "[SIMULATED] Right shoulder enabled"
@@ -175,7 +175,7 @@ def RIGHTSHOULDEROFF():
     return HEADOFF()
 
 def LEFTSHOULDERON():
-    """Left shoulder aim - from your Memory.py"""
+    """Left shoulder aim"""
     global original_value
     if not PYMEM_OK or not aimbot_addresses:
         return "[SIMULATED] Left shoulder enabled"
@@ -199,7 +199,7 @@ def LEFTSHOULDEROFF():
     return HEADOFF()
 
 def RemoveRecoil():
-    """Remove recoil - from your Memory.py"""
+    """Remove recoil"""
     if not PYMEM_OK:
         return "[SIMULATED] No recoil enabled"
     try:
@@ -220,7 +220,7 @@ def RemoveRecoil():
             pass
 
 def AddRecoil():
-    """Restore recoil - from your Memory.py"""
+    """Restore recoil"""
     if not PYMEM_OK:
         return "[SIMULATED] Recoil restored"
     try:
@@ -257,10 +257,8 @@ def set_aim_legit_key(key):
     return f"Key set to {key}"
 
 def aim_legit_activate():
-    """Activate aim based on target"""
     global aim_legit_active
     aim_legit_active = True
-    
     if aim_legit_target == "neck":
         return HEADON()
     elif aim_legit_target == "left":
@@ -270,13 +268,11 @@ def aim_legit_activate():
     return "Aim Legit activated"
 
 def aim_legit_deactivate():
-    """Deactivate aim"""
     global aim_legit_active
     aim_legit_active = False
     return HEADOFF()
 
 def aim_legit_toggle():
-    """Toggle aim on/off"""
     global aim_legit_active
     if aim_legit_active:
         return aim_legit_deactivate()
@@ -284,7 +280,6 @@ def aim_legit_toggle():
         return aim_legit_activate()
 
 def aim_legit_status():
-    """Get current status"""
     return {
         'active': aim_legit_active,
         'mode': aim_legit_mode,
@@ -294,7 +289,7 @@ def aim_legit_status():
 
 # ==================== FLASK SETUP ====================
 app = Flask(__name__)
-app.secret_key = "ghost-xs-green-2024"
+app.secret_key = "ghost-xs-red-2024"
 
 # Hybrid mode globals
 hybrid_active = False
@@ -316,7 +311,7 @@ LOGIN_PAGE = '''<!DOCTYPE html>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             background:#0a0a0a;
-            font-family:'Courier New', monospace;
+            font-family:'Segoe UI', sans-serif;
             height:100vh;
             display:flex;
             align-items:center;
@@ -324,49 +319,45 @@ LOGIN_PAGE = '''<!DOCTYPE html>
         }
         .login-box {
             background:#111;
-            border:2px solid #00ff00;
+            border:1px solid #ff3333;
             border-radius:8px;
             padding:40px;
             width:340px;
-            box-shadow:0 0 20px #00ff00;
+            box-shadow:0 0 20px rgba(255,51,51,0.3);
         }
         h2 {
-            color:#00ff00;
+            color:#ff3333;
             text-align:center;
             margin-bottom:30px;
             font-size:24px;
-            text-shadow:0 0 10px #00ff00;
         }
         input {
             width:100%;
             padding:12px;
             margin-bottom:20px;
             background:#222;
-            border:1px solid #00ff00;
+            border:1px solid #333;
             border-radius:4px;
-            color:#00ff00;
+            color:#fff;
             font-size:14px;
-            font-family:'Courier New', monospace;
         }
         input:focus {
             outline:none;
-            box-shadow:0 0 10px #00ff00;
+            border-color:#ff3333;
         }
         button {
             width:100%;
             padding:12px;
-            background:#00ff00;
-            color:#000;
+            background:#ff3333;
+            color:#fff;
             border:none;
             border-radius:4px;
             font-size:16px;
             font-weight:bold;
             cursor:pointer;
-            font-family:'Courier New', monospace;
         }
         button:hover {
-            background:#00cc00;
-            box-shadow:0 0 20px #00ff00;
+            background:#cc0000;
         }
         .loader {
             display:none;
@@ -375,12 +366,12 @@ LOGIN_PAGE = '''<!DOCTYPE html>
             background:rgba(0,0,0,0.9);
             align-items:center;
             justify-content:center;
-            color:#00ff00;
+            color:#ff3333;
         }
         .loader.show { display:flex; }
         .spinner {
             width:50px; height:50px;
-            border:3px solid #00ff00;
+            border:3px solid #ff3333;
             border-top-color:transparent;
             border-radius:50%;
             animation:spin 1s linear infinite;
@@ -405,19 +396,19 @@ LOGIN_PAGE = '''<!DOCTYPE html>
 </body>
 </html>'''
 
-# ==================== DASHBOARD PAGE (GREEN HACKER THEME) ====================
+# ==================== DASHBOARD PAGE (RED THEME) ====================
 DASHBOARD_PAGE = '''<!DOCTYPE html>
 <html>
 <head>
-    <title>GHOST-XS TERMINAL</title>
+    <title>GHOST-XS DASHBOARD</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            background:#000000;
-            font-family:'Courier New', monospace;
-            color:#00ff00;
+            background:#0a0a0a;
+            font-family:'Segoe UI', monospace;
+            color:#fff;
             padding:20px;
         }
         .container {
@@ -425,21 +416,19 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             margin:0 auto;
         }
         .header {
-            background:#111111;
-            border:2px solid #00ff00;
+            background:#111;
+            border:1px solid #ff3333;
             border-radius:8px;
             padding:20px;
             margin-bottom:20px;
             display:flex;
             justify-content:space-between;
             align-items:center;
-            box-shadow:0 0 15px #00ff00;
         }
         .logo {
-            color:#00ff00;
-            font-size:28px;
+            color:#ff3333;
+            font-size:24px;
             font-weight:bold;
-            text-shadow:0 0 10px #00ff00;
         }
         .status {
             display:flex;
@@ -450,14 +439,13 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         }
         .stat-label {
             font-size:12px;
-            color:#008800;
+            color:#888;
             margin-bottom:5px;
         }
         .stat-value {
             font-size:14px;
-            color:#00ff00;
+            color:#ff3333;
             font-weight:bold;
-            text-shadow:0 0 5px #00ff00;
         }
         .nav {
             display:flex;
@@ -466,48 +454,43 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             background:#111;
             padding:5px;
             border-radius:8px;
-            border:1px solid #00ff00;
         }
         .nav-btn {
             flex:1;
             padding:12px;
             background:transparent;
             border:none;
-            color:#008800;
+            color:#888;
             font-size:14px;
             font-weight:bold;
             cursor:pointer;
             border-radius:6px;
-            font-family:'Courier New', monospace;
         }
         .nav-btn:hover {
-            background:#00ff00;
-            color:#000;
+            background:#222;
+            color:#fff;
         }
         .nav-btn.active {
-            background:#00ff00;
-            color:#000;
-            box-shadow:0 0 15px #00ff00;
+            background:#ff3333;
+            color:#fff;
         }
         .panel {
             display:none;
             background:#111;
-            border:1px solid #00ff00;
+            border:1px solid #333;
             border-radius:8px;
             padding:25px;
             margin-bottom:20px;
-            box-shadow:0 0 10px #00ff00;
         }
         .panel.active {
             display:block;
         }
         .panel-title {
-            color:#00ff00;
+            color:#ff3333;
             font-size:18px;
             margin-bottom:20px;
             padding-bottom:10px;
-            border-bottom:1px solid #00ff00;
-            text-shadow:0 0 5px #00ff00;
+            border-bottom:1px solid #333;
         }
         .grid {
             display:grid;
@@ -516,19 +499,18 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         }
         .module {
             background:#1a1a1a;
-            border:1px solid #00ff00;
+            border:1px solid #333;
             border-radius:6px;
             padding:20px;
         }
         .module-title {
-            color:#00ff00;
+            color:#ff3333;
             font-size:14px;
             font-weight:bold;
             margin-bottom:10px;
-            text-shadow:0 0 5px #00ff00;
         }
         .module-desc {
-            color:#008800;
+            color:#888;
             font-size:12px;
             margin-bottom:15px;
         }
@@ -536,59 +518,51 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             width:100%;
             padding:10px;
             margin-bottom:8px;
-            background:#000;
-            border:1px solid #00ff00;
-            color:#00ff00;
+            background:#222;
+            border:1px solid #444;
+            color:#fff;
             border-radius:4px;
             cursor:pointer;
             font-size:12px;
             font-weight:bold;
-            font-family:'Courier New', monospace;
         }
         button:hover {
-            background:#00ff00;
-            color:#000;
-            box-shadow:0 0 10px #00ff00;
+            background:#ff3333;
+            border-color:#ff3333;
         }
         button.primary {
-            background:#00ff00;
-            color:#000;
+            background:#ff3333;
+            border-color:#ff3333;
         }
         button.exit-btn {
-            background:#00ff00;
-            color:#000;
+            background:#ff3333;
+            border-color:#ff3333;
             margin-top:20px;
+            padding:15px;
+            font-size:14px;
         }
         select {
             width:100%;
             padding:10px;
             margin-bottom:15px;
-            background:#000;
-            border:1px solid #00ff00;
-            color:#00ff00;
+            background:#222;
+            border:1px solid #444;
+            color:#fff;
             border-radius:4px;
             cursor:pointer;
-            font-family:'Courier New', monospace;
-        }
-        select:hover {
-            box-shadow:0 0 10px #00ff00;
-        }
-        select option {
-            background:#000;
-            color:#00ff00;
         }
         .badge {
             display:inline-block;
             padding:4px 8px;
-            background:#000;
-            border:1px solid #00ff00;
+            background:#222;
+            border:1px solid #ff3333;
             border-radius:4px;
-            color:#00ff00;
+            color:#ff3333;
             font-size:11px;
         }
         .monitor {
-            background:#000;
-            border:1px solid #00ff00;
+            background:#1a1a1a;
+            border:1px solid #333;
             border-radius:6px;
             padding:15px;
             margin-top:15px;
@@ -598,23 +572,10 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             justify-content:space-between;
             margin-bottom:10px;
             font-size:13px;
-            padding-bottom:5px;
-            border-bottom:1px solid #00ff00;
-        }
-        .monitor-row:last-child {
-            border-bottom:none;
-        }
-        .monitor-label {
-            color:#008800;
-        }
-        .monitor-value {
-            color:#00ff00;
-            font-weight:bold;
-            text-shadow:0 0 5px #00ff00;
         }
         .key-bind {
-            background:#000;
-            border:1px solid #00ff00;
+            background:#222;
+            border:1px solid #444;
             border-radius:4px;
             padding:12px;
             margin-bottom:15px;
@@ -622,13 +583,9 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             justify-content:space-between;
             align-items:center;
         }
-        .key-bind span:first-child {
-            color:#008800;
-        }
-        .key-bind span:last-child {
-            color:#00ff00;
+        .key-bind span {
+            color:#ff3333;
             font-weight:bold;
-            text-shadow:0 0 5px #00ff00;
         }
         .mode-selector {
             display:flex;
@@ -638,28 +595,28 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         .mode-btn {
             flex:1;
             padding:10px;
-            background:#000;
-            border:1px solid #00ff00;
-            color:#008800;
+            background:#222;
+            border:1px solid #444;
+            color:#888;
             border-radius:4px;
             cursor:pointer;
         }
         .mode-btn.active {
-            background:#00ff00;
-            color:#000;
+            background:#ff3333;
+            color:#fff;
+            border-color:#ff3333;
         }
         .terminal {
-            background:#000;
-            border:1px solid #00ff00;
+            background:#111;
+            border:1px solid #333;
             border-radius:6px;
             margin-top:20px;
-            box-shadow:0 0 15px #00ff00;
         }
         .terminal-header {
             background:#1a1a1a;
             padding:10px 15px;
-            border-bottom:1px solid #00ff00;
-            color:#00ff00;
+            border-bottom:1px solid #333;
+            color:#ff3333;
             font-size:13px;
             font-weight:bold;
         }
@@ -669,15 +626,15 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             max-height:200px;
             overflow-y:auto;
             font-size:12px;
-            color:#00ff00;
+            color:#ccc;
         }
         .log {
             margin-bottom:5px;
-            border-left:2px solid #00ff00;
+            border-left:2px solid #ff3333;
             padding-left:10px;
         }
         .log-time {
-            color:#008800;
+            color:#666;
             margin-right:10px;
         }
         .flex {
@@ -715,7 +672,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
 
         <!-- AIMBOT PANEL -->
         <div class="panel active" id="aimbot">
-            <div class="panel-title">> AIMBOT CONTROLS</div>
+            <div class="panel-title">AIMBOT CONTROLS</div>
             <div class="grid">
                 <div class="module">
                     <div class="module-title">PLAYER SCANNER</div>
@@ -747,7 +704,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
 
         <!-- HYBRID PANEL -->
         <div class="panel" id="hybrid">
-            <div class="panel-title">> HYBRID SYSTEM</div>
+            <div class="panel-title">HYBRID SYSTEM</div>
             <div class="grid">
                 <div class="module">
                     <div class="module-title">HYBRID CONFIG</div>
@@ -773,16 +730,16 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                     <div class="module-title">HYBRID MONITOR</div>
                     <div class="monitor">
                         <div class="monitor-row">
-                            <span class="monitor-label">CURRENT</span>
-                            <span class="monitor-value" id="hybCurrent">NONE</span>
+                            <span>CURRENT</span>
+                            <span id="hybCurrent">NONE</span>
                         </div>
                         <div class="monitor-row">
-                            <span class="monitor-label">SWITCHES</span>
-                            <span class="monitor-value" id="hybCount">0</span>
+                            <span>SWITCHES</span>
+                            <span id="hybCount">0</span>
                         </div>
                         <div class="monitor-row">
-                            <span class="monitor-label">STATUS</span>
-                            <span class="monitor-value" id="hybState">OFF</span>
+                            <span>STATUS</span>
+                            <span id="hybState">OFF</span>
                         </div>
                     </div>
                     <button onclick="resetHybrid()">RESET</button>
@@ -792,14 +749,14 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
 
         <!-- AIM LEGIT PANEL -->
         <div class="panel" id="aimlegit">
-            <div class="panel-title">> AIM LEGIT MODE</div>
+            <div class="panel-title">AIM LEGIT MODE</div>
             <div class="grid">
                 <div class="module">
                     <div class="module-title">CONFIGURATION</div>
                     <div class="module-desc">Configure aim on key press</div>
                     
                     <div style="margin-bottom:15px;">
-                        <div style="color:#00ff00; margin-bottom:5px; font-size:12px;">TARGET</div>
+                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">TARGET</div>
                         <select id="legitTarget" onchange="updateLegitTarget()">
                             <option value="neck">NECK</option>
                             <option value="left">LEFT SHOULDER</option>
@@ -808,12 +765,12 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                     </div>
                     
                     <div style="margin-bottom:15px;">
-                        <div style="color:#00ff00; margin-bottom:5px; font-size:12px;">MOUSE BUTTONS</div>
+                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">MOUSE BUTTONS</div>
                         <select id="legitKey" onchange="updateLegitKey()">
                             <option value="xbutton1">MOUSE 4 (Back/Thumb)</option>
                             <option value="xbutton2">MOUSE 5 (Forward/Thumb)</option>
-                            <option value="mouse4">MOUSE 4 (Alternate)</option>
-                            <option value="mouse5">MOUSE 5 (Alternate)</option>
+                            <option value="mouse4">MOUSE 4 (Alt)</option>
+                            <option value="mouse5">MOUSE 5 (Alt)</option>
                             <option value="mouse1">LEFT MOUSE BUTTON</option>
                             <option value="mouse2">RIGHT MOUSE BUTTON</option>
                             <option value="mouse3">MIDDLE MOUSE BUTTON</option>
@@ -821,7 +778,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                     </div>
                     
                     <div style="margin-bottom:15px;">
-                        <div style="color:#00ff00; margin-bottom:5px; font-size:12px;">KEYBOARD KEYS</div>
+                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">KEYBOARD KEYS</div>
                         <select id="legitKey2" onchange="updateLegitKey()">
                             <option value="">-- SELECT KEYBOARD KEY --</option>
                             <option value="control">CONTROL</option>
@@ -870,21 +827,11 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                             <option value="x">X</option>
                             <option value="y">Y</option>
                             <option value="z">Z</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="0">0</option>
                         </select>
                     </div>
                     
                     <div style="margin-bottom:15px;">
-                        <div style="color:#00ff00; margin-bottom:5px; font-size:12px;">MODE</div>
+                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">MODE</div>
                         <div class="mode-selector">
                             <button class="mode-btn active" id="modeHold" onclick="setLegitMode('hold')">HOLD</button>
                             <button class="mode-btn" id="modeToggle" onclick="setLegitMode('toggle')">TOGGLE</button>
@@ -903,26 +850,21 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                     <div class="module-title">STATUS</div>
                     <div class="monitor">
                         <div class="monitor-row">
-                            <span class="monitor-label">STATE</span>
-                            <span class="monitor-value" id="legitState">INACTIVE</span>
+                            <span>STATE</span>
+                            <span id="legitState">INACTIVE</span>
                         </div>
                         <div class="monitor-row">
-                            <span class="monitor-label">TARGET</span>
-                            <span class="monitor-value" id="legitTargetDisplay">NECK</span>
+                            <span>TARGET</span>
+                            <span id="legitTargetDisplay">NECK</span>
                         </div>
                         <div class="monitor-row">
-                            <span class="monitor-label">MODE</span>
-                            <span class="monitor-value" id="legitModeDisplay">HOLD</span>
+                            <span>MODE</span>
+                            <span id="legitModeDisplay">HOLD</span>
                         </div>
                         <div class="monitor-row">
-                            <span class="monitor-label">KEY</span>
-                            <span class="monitor-value" id="legitKeyDisplay">MOUSE 4</span>
+                            <span>KEY</span>
+                            <span id="legitKeyDisplay">MOUSE 4</span>
                         </div>
-                    </div>
-                    
-                    <div style="margin-top:20px; padding:10px; background:#000; border-left:3px solid #00ff00;">
-                        <div style="color:#00ff00; font-size:12px;">HOLD: Press and hold to activate</div>
-                        <div style="color:#00ff00; font-size:12px; margin-top:5px;">TOGGLE: Press once to enable/disable</div>
                     </div>
                 </div>
             </div>
@@ -930,23 +872,23 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
 
         <!-- SETTINGS PANEL -->
         <div class="panel" id="settings">
-            <div class="panel-title">> SETTINGS</div>
+            <div class="panel-title">SETTINGS</div>
             <div class="grid">
                 <div class="module">
                     <div class="module-title">APPLICATION</div>
                     <div class="module-desc">Control application behavior</div>
                     
-                    <div style="background:#000; padding:15px; border-radius:4px; margin-bottom:15px; border:1px solid #00ff00;">
-                        <div style="color:#00ff00; margin-bottom:10px;">EXIT APPLICATION</div>
-                        <div style="color:#008800; font-size:12px; margin-bottom:15px;">This will terminate the entire application.</div>
-                        <button class="exit-btn" onclick="exitApplication()">TERMINATE</button>
+                    <div style="background:#1a1a1a; padding:20px; border-radius:6px; border:1px solid #333;">
+                        <div style="color:#ff3333; margin-bottom:15px; font-size:16px;">⚠️ EXIT APPLICATION</div>
+                        <div style="color:#888; font-size:13px; margin-bottom:20px;">This will completely terminate GHOST-XS. You will need to restart the script to use it again.</div>
+                        <button class="exit-btn" onclick="exitApplication()">TERMINATE NOW</button>
                     </div>
                     
-                    <div style="background:#000; padding:15px; border-radius:4px; border:1px solid #00ff00;">
-                        <div style="color:#00ff00; margin-bottom:10px;">SYSTEM INFO</div>
-                        <div style="color:#008800; font-size:12px;">Status: <span style="color:#00ff00;">Running</span></div>
-                        <div style="color:#008800; font-size:12px;">Port: <span style="color:#00ff00;">8890</span></div>
-                        <div style="color:#008800; font-size:12px;">URL: <span style="color:#00ff00;">http://localhost:8890</span></div>
+                    <div style="margin-top:20px; background:#1a1a1a; padding:15px; border-radius:6px; border:1px solid #333;">
+                        <div style="color:#ff3333; margin-bottom:10px;">SYSTEM INFO</div>
+                        <div style="color:#888; font-size:12px;">Status: <span style="color:#ff3333;">Running</span></div>
+                        <div style="color:#888; font-size:12px;">Port: <span style="color:#ff3333;">8890</span></div>
+                        <div style="color:#888; font-size:12px;">URL: <span style="color:#ff3333;">http://localhost:8890</span></div>
                     </div>
                 </div>
             </div>
@@ -954,7 +896,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
 
         <!-- TERMINAL -->
         <div class="terminal">
-            <div class="terminal-header">> TERMINAL</div>
+            <div class="terminal-header">SYSTEM TERMINAL</div>
             <div class="terminal-content" id="terminal">
                 <div class="log"><span class="log-time">[--:--:--]</span> GHOST-XS READY</div>
             </div>
@@ -991,7 +933,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             const time = new Date().toLocaleTimeString();
             t.innerHTML += `<div class="log"><span class="log-time">[${time}]</span> ${msg}</div>`;
             t.scrollTop = t.scrollHeight;
-            if (t.children.length > 20) t.children[0].remove();
+            if (t.children.length > 30) t.children[0].remove();
         }
 
         async function runCmd(cmd) {
@@ -1038,18 +980,19 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
 
         async function toggleHybrid() {
             if (hybridOn) {
-                await fetch('/hybrid_stop', {method: 'POST'});
+                const r = await fetch('/hybrid_stop', {method: 'POST'});
+                const d = await r.json();
                 hybridOn = false;
                 document.getElementById('hybBtn').textContent = 'ACTIVATE';
                 document.getElementById('hybState').textContent = 'OFF';
                 if (hybInterval) clearInterval(hybInterval);
-                log('Hybrid stopped');
+                log(`Hybrid stopped - ${d.switches || 0} switches`);
                 return;
             }
             
             const a1 = document.getElementById('hybAim1').value;
             const a2 = document.getElementById('hybAim2').value;
-            const f = document.getElementById('hybFreq').value;
+            const f = parseInt(document.getElementById('hybFreq').value);
             
             if (a1 === a2) {
                 log('Error: Select different aim points');
@@ -1059,14 +1002,14 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
             const r = await fetch('/hybrid_start', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({aim1: a1, aim2: a2, frequency: parseInt(f)})
+                body: JSON.stringify({aim1: a1, aim2: a2, frequency: f})
             });
             
             if (r.ok) {
                 hybridOn = true;
                 document.getElementById('hybBtn').textContent = 'DEACTIVATE';
                 document.getElementById('hybState').textContent = 'ON';
-                log(`Hybrid: ${a1} + ${a2} @ ${f}ms`);
+                log(`Hybrid activated: ${a1} + ${a2} @ ${f}ms`);
                 startMonitor();
             }
         }
@@ -1086,6 +1029,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         function resetHybrid() {
             document.getElementById('hybCurrent').textContent = 'NONE';
             document.getElementById('hybCount').textContent = '0';
+            log('Hybrid monitor reset');
         }
 
         // AIM LEGIT FUNCTIONS
@@ -1099,13 +1043,12 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         }
 
         function updateLegitKey() {
-            // Get value from either mouse select or keyboard select
             const mouseSelect = document.getElementById('legitKey');
             const keyboardSelect = document.getElementById('legitKey2');
             
             if (keyboardSelect.value) {
                 legitKey = keyboardSelect.value;
-                keyboardSelect.value = ''; // Reset after selection
+                keyboardSelect.value = '';
             } else {
                 legitKey = mouseSelect.value;
             }
@@ -1126,8 +1069,8 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
 
         function updateBindDisplay() {
             const keyNames = {
-                'xbutton1': 'MOUSE 4 (Back)',
-                'xbutton2': 'MOUSE 5 (Forward)',
+                'xbutton1': 'MOUSE 4',
+                'xbutton2': 'MOUSE 5',
                 'mouse4': 'MOUSE 4',
                 'mouse5': 'MOUSE 5',
                 'mouse1': 'LEFT MOUSE',
@@ -1140,14 +1083,11 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 'tab': 'TAB',
                 'space': 'SPACE',
                 'enter': 'ENTER',
-                'esc': 'ESCAPE',
-                'f1': 'F1', 'f2': 'F2', 'f3': 'F3', 'f4': 'F4',
-                'f5': 'F5', 'f6': 'F6', 'f7': 'F7', 'f8': 'F8',
-                'f9': 'F9', 'f10': 'F10', 'f11': 'F11', 'f12': 'F12'
+                'esc': 'ESC'
             };
-            const displayName = keyNames[legitKey] || legitKey.toUpperCase();
-            document.getElementById('currentBind').textContent = `${displayName} (${legitMode.toUpperCase()})`;
-            document.getElementById('legitKeyDisplay').textContent = displayName;
+            document.getElementById('currentBind').textContent = 
+                `${keyNames[legitKey] || legitKey.toUpperCase()} (${legitMode.toUpperCase()})`;
+            document.getElementById('legitKeyDisplay').textContent = keyNames[legitKey] || legitKey.toUpperCase();
         }
 
         async function testLegit() {
@@ -1168,16 +1108,23 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         setInterval(updateLegitState, 500);
 
         async function exitApplication() {
-            if (confirm('Terminate GHOST-XS?')) {
-                log('> TERMINATING...');
-                await fetch('/shutdown', {method: 'POST'});
-                document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#00ff00;font-family:monospace;"><h1>GHOST-XS TERMINATED</h1></div>';
+            if (confirm('⚠️ This will completely terminate GHOST-XS. Continue?')) {
+                log('⚠️ TERMINATING APPLICATION...');
+                try {
+                    const r = await fetch('/shutdown', {method: 'POST'});
+                    const d = await r.json();
+                    log(d.message);
+                    setTimeout(() => {
+                        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0a;color:#ff3333;font-family:monospace;flex-direction:column;"><h1 style="font-size:48px;">GHOST-XS</h1><h2 style="margin:20px 0;">TERMINATED</h2><p>The application has been shut down.</p><p>Restart the script to use again.</p></div>';
+                    }, 1000);
+                } catch(e) {
+                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0a;color:#ff3333;font-family:monospace;"><h1>GHOST-XS TERMINATED</h1></div>';
+                }
             }
         }
 
         window.onload = () => {
             log('System ready');
-            log('Aim Legit: Select mouse/keyboard button');
             updateLegitState();
             updateBindDisplay();
         };
@@ -1209,7 +1156,7 @@ def login():
             print(f"[AUTH] {username} logged in")
             return redirect(url_for('dashboard'))
         else:
-            return '''<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#00ff00;text-align:center;">ACCESS DENIED<br><a href="/" style="color:#00ff00;">RETRY</a></div>'''
+            return '''<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#ff3333;text-align:center;">ACCESS DENIED<br><a href="/" style="color:#ff3333;">RETRY</a></div>'''
 
 @app.route('/dashboard')
 def dashboard():
@@ -1349,12 +1296,14 @@ def shutdown():
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
     
+    # Properly shutdown Flask
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
+        # Fallback for different servers
         os._exit(0)
     else:
         func()
-    return jsonify({'message': 'Shutting down'})
+    return jsonify({'message': 'Shutting down...'})
 
 # Hybrid background thread
 def hybrid_loop():
@@ -1420,13 +1369,13 @@ if __name__ == '__main__':
     
     ip = get_ip()
     
-    print("=" * 50)
-    print("GHOST-XS HACKER EDITION")
-    print("=" * 50)
-    print(f"Local URL:  http://localhost:8890")
-    print(f"Network URL: http://{ip}:8890")
-    print(f"PyMem:      {'ACTIVE' if PYMEM_OK else 'SIMULATED'}")
-    print(f"Aim Legit:  READY (All mouse/keyboard buttons)")
-    print("=" * 50)
+    print("=" * 60)
+    print("  GHOST-XS RED EDITION")
+    print("=" * 60)
+    print(f"  Local URL:  http://localhost:8890")
+    print(f"  Network URL: http://{ip}:8890")
+    print(f"  PyMem:      {'ACTIVE' if PYMEM_OK else 'SIMULATED'}")
+    print(f"  Terminate:  WORKING")
+    print("=" * 60)
     
     app.run(host='0.0.0.0', port=8890, debug=False, threaded=True)
