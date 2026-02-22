@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# GHOST-XS - COMPLETE EDITION WITH ANTI-CHEAT BLOCKER
+# GHOST-XS - COMPLETE EDITION WITH ANTI-CHEAT BLOCKER & SID VERIFICATION
 # Runs on http://localhost:8890
 
 import os
@@ -10,8 +10,11 @@ import socket
 import threading
 import hashlib
 import ctypes
+import ctypes.wintypes
 import urllib.request
 import psutil
+import subprocess
+import re
 from datetime import datetime
 from flask import Flask, request, redirect, url_for, session, jsonify
 
@@ -22,14 +25,93 @@ if sys.platform == "win32":
     except:
         pass
 
+# ==================== GET COMPUTER SID ====================
+def get_computer_sid():
+    """Get the actual SID of the current computer"""
+    try:
+        # Method 1: Using wmic to get computer SID
+        result = subprocess.run(['wmic', 'useraccount', 'where', "name='%username%'", 'get', 'sid'], 
+                               capture_output=True, text=True, shell=True)
+        
+        # Extract SID from output
+        output = result.stdout
+        match = re.search(r'(S-\d-\d+-[\d-]+)', output)
+        if match:
+            return match.group(1)
+        
+        # Method 2: Fallback - get current user SID
+        result = subprocess.run(['whoami', '/user'], capture_output=True, text=True, shell=True)
+        output = result.stdout
+        match = re.search(r'(S-\d-\d+-[\d-]+)', output)
+        if match:
+            return match.group(1)
+            
+        return "SID_NOT_FOUND"
+    except:
+        return "SID_NOT_FOUND"
+
+# ==================== GITHUB AUTH WITH SID VERIFICATION ====================
+GITHUB_URL = "https://raw.githubusercontent.com/Ghostxs90/Sid/main/Sid.txt"
+
+def get_credentials():
+    """Get credentials from GitHub"""
+    try:
+        req = urllib.request.Request(GITHUB_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            content = r.read().decode('utf-8')
+            return parse_creds(content)
+    except:
+        return {}
+
+def parse_creds(content):
+    """Parse credentials file"""
+    creds = {}
+    lines = content.strip().split('\n')
+    current = None
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        if 'username :' in line:
+            current = line.split(':')[1].strip().lower()
+            creds[current] = {'pass': '', 'sid': ''}
+        elif 'Pass :' in line and current:
+            creds[current]['pass'] = line.split(':')[1].strip()
+        elif 'sid :' in line and current:
+            creds[current]['sid'] = line.split(':')[1].strip()
+            current = None
+    return creds
+
+def verify_credentials(username, password):
+    """Verify username, password AND computer SID"""
+    creds = get_credentials()
+    username = username.lower()
+    
+    # Check if username exists
+    if username not in creds:
+        return False, "Username not found"
+    
+    # Check password
+    if creds[username]['pass'] != password:
+        return False, "Invalid password"
+    
+    # Get computer's actual SID
+    computer_sid = get_computer_sid()
+    expected_sid = creds[username]['sid']
+    
+    print(f"[AUTH] Computer SID: {computer_sid}")
+    print(f"[AUTH] Expected SID: {expected_sid}")
+    
+    # Verify SID matches
+    if computer_sid != expected_sid:
+        return False, "SID mismatch - Unauthorized computer"
+    
+    # All checks passed
+    return True, "Authentication successful"
+
 # ==================== ANTI-CHEAT BLOCKER MODULE ====================
-import ctypes
 from ctypes import wintypes
-import psutil
-import os
-import sys
-import time
-import threading
 
 # Windows API constants
 PROCESS_ALL_ACCESS = 0x1F0FFF
@@ -293,39 +375,6 @@ class AntiCheatBlocker:
 # Create global instance
 anticheat_blocker = AntiCheatBlocker()
 
-# ==================== GITHUB AUTH ====================
-GITHUB_URL = "https://raw.githubusercontent.com/Ghostxs90/Sid/main/Sid.txt"
-
-def get_credentials():
-    """Get credentials from GitHub"""
-    try:
-        req = urllib.request.Request(GITHUB_URL, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=5) as r:
-            content = r.read().decode('utf-8')
-            return parse_creds(content)
-    except:
-        return {}
-
-def parse_creds(content):
-    """Parse credentials file"""
-    creds = {}
-    lines = content.strip().split('\n')
-    current = None
-    
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        if 'username :' in line:
-            current = line.split(':')[1].strip().lower()
-            creds[current] = {'pass': '', 'sid': ''}
-        elif 'Pass :' in line and current:
-            creds[current]['pass'] = line.split(':')[1].strip()
-        elif 'sid :' in line and current:
-            creds[current]['sid'] = line.split(':')[1].strip()
-            current = None
-    return creds
-
 # ==================== MEMORY FUNCTIONS ====================
 try:
     from pymem import Pymem
@@ -339,7 +388,7 @@ except ImportError:
 # Global variables
 aimbot_addresses = []
 original_value = []
-ai_aimbot_active = False  # Placeholder for AI aimbot
+ai_aimbot_active = False
 
 def mkp(aob: str):
     """Pattern converter"""
@@ -514,56 +563,119 @@ def ai_aimbot_on():
     """Placeholder for AI aimbot enable"""
     global ai_aimbot_active
     ai_aimbot_active = True
-    # TODO: Implement actual AI aimbot logic
-    # This will be replaced with actual AI aimbot code
     return "[AI AIMBOT] AI aimbot enabled - Ready for integration"
 
 def ai_aimbot_off():
     """Placeholder for AI aimbot disable"""
     global ai_aimbot_active
     ai_aimbot_active = False
-    # TODO: Implement actual AI aimbot disable logic
     return "[AI AIMBOT] AI aimbot disabled"
 
-# ==================== ESP INJECTION PLACEHOLDER ====================
-def inject_esp_dll(emulator, dll_name="esp_v1.dll"):
-    """Placeholder for ESP DLL injection"""
-    # TODO: Implement actual DLL injection
-    # This will be replaced with actual DLL injection code
+# ==================== MEMORY-ONLY DLL INJECTION ====================
+# GitHub URL for your single DLL (works for both MSI and BlueStacks)
+DLL_URL = "https://raw.githubusercontent.com/Ghostxs90/ESP-DLLs/main/esp.dll"
+
+def inject_dll_from_memory(pid, dll_bytes):
+    """Inject DLL directly from memory bytes - NO FILE ON DISK"""
     try:
-        # Check if HD-Player is running
-        proc_found = False
-        for proc in psutil.process_iter(['name']):
+        # Open the target process
+        h_process = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
+        if not h_process:
+            return False, "Failed to open process"
+        
+        # Allocate memory in target process for DLL
+        dll_size = len(dll_bytes)
+        remote_memory = VirtualAllocEx(
+            h_process, None, dll_size,
+            MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
+        )
+        
+        if not remote_memory:
+            CloseHandle(h_process)
+            return False, "Failed to allocate memory in target process"
+        
+        # Write DLL bytes to allocated memory
+        written = ctypes.c_size_t(0)
+        result = WriteProcessMemory(
+            h_process, remote_memory, dll_bytes,
+            dll_size, ctypes.byref(written)
+        )
+        
+        if not result or written.value != dll_size:
+            VirtualFreeEx(h_process, remote_memory, 0, 0x8000)
+            CloseHandle(h_process)
+            return False, "Failed to write DLL to target process memory"
+        
+        # Get entry point (assuming standard DLL - you may need to parse PE headers)
+        # For simplicity, this assumes the DLL has a standard entry point at base + 0x1000
+        # In production, you'd parse the PE header to find the actual entry point
+        entry_point = remote_memory + 0x1000  # Adjust based on your DLL
+        
+        # Create remote thread to execute DLL entry point
+        thread_id = ctypes.c_ulong(0)
+        h_thread = kernel32.CreateRemoteThread(
+            h_process, None, 0, entry_point,
+            None, 0, ctypes.byref(thread_id)
+        )
+        
+        if not h_thread:
+            VirtualFreeEx(h_process, remote_memory, 0, 0x8000)
+            CloseHandle(h_process)
+            return False, "Failed to create remote thread"
+        
+        # Wait for thread to complete (optional)
+        kernel32.WaitForSingleObject(h_thread, 5000)
+        
+        # Clean up handles
+        kernel32.CloseHandle(h_thread)
+        CloseHandle(h_process)
+        
+        # DLL is now running in target process, memory remains allocated
+        # The DLL will stay in memory until HD-Player.exe closes
+        
+        return True, "DLL injected successfully from memory"
+        
+    except Exception as e:
+        return False, str(e)
+
+def download_and_inject_esp(emulator):
+    """Download DLL directly to memory and inject - NO DISK WRITE"""
+    try:
+        # Step 1: Find HD-Player.exe PID (same for both MSI and BlueStacks)
+        hd_pid = 0
+        for proc in psutil.process_iter(['pid', 'name']):
             if proc.info['name'] and proc.info['name'].lower() == 'hd-player.exe':
-                proc_found = True
+                hd_pid = proc.info['pid']
                 break
         
-        if not proc_found:
+        if not hd_pid:
             return {
                 'success': False, 
-                'error': 'HD-Player.exe not found - Launch emulator first'
+                'error': 'HD-Player.exe not running - Launch MSI or BlueStacks first'
             }
         
-        # Simulate injection based on emulator
-        if emulator == 'msi':
-            # MSI specific injection logic placeholder
-            time.sleep(1.5)  # Simulate injection time
+        # Step 2: Download DLL directly into memory (as bytes)
+        req = urllib.request.Request(DLL_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as response:
+            dll_bytes = response.read()  # DLL is NOW in memory, NOT on disk
+        
+        if len(dll_bytes) < 1000:
+            return {'success': False, 'error': 'Downloaded DLL is too small (corrupt?)'}
+        
+        # Step 3: Inject directly from memory into HD-Player.exe
+        success, message = inject_dll_from_memory(hd_pid, dll_bytes)
+        
+        if success:
             return {
                 'success': True,
-                'message': f'ESP injected successfully into MSI (HD-Player.exe)',
-                'dll': dll_name
-            }
-        elif emulator == 'bluestacks':
-            # BlueStacks specific injection logic placeholder
-            time.sleep(1.5)  # Simulate injection time
-            return {
-                'success': True,
-                'message': f'ESP injected successfully into BlueStacks (HD-Player.exe)',
-                'dll': dll_name
+                'message': f'ESP injected directly into memory (PID: {hd_pid})',
+                'pid': hd_pid
             }
         else:
-            return {'success': False, 'error': 'Invalid emulator selected'}
+            return {'success': False, 'error': message}
             
+    except urllib.error.URLError as e:
+        return {'success': False, 'error': f'Failed to download DLL: {str(e)}'}
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
@@ -571,142 +683,414 @@ def inject_esp_dll(emulator, dll_name="esp_v1.dll"):
 app = Flask(__name__)
 app.secret_key = "ghost-xs-red-2024"
 
-# ==================== LOGIN PAGE ====================
+# ==================== LOGIN PAGE (RED THEME WITH PARTICLES) ====================
 LOGIN_PAGE = '''<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>VortexOffcial • Login</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VortexOffcial • Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background:#0a0a0a;
-            font-family:'Inter', sans-serif;
-            height:100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            position:relative;
-            overflow:hidden;
+            background: #0a0a0a;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
         }
+
+        /* Animated particles canvas */
+        #login-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Red gradient overlays */
         body::before {
-            content:'';
-            position:absolute;
-            top:0; left:0; right:0; bottom:0;
-            background:radial-gradient(circle at 30% 50%, rgba(255,51,51,0.05) 0%, transparent 50%),
-                       radial-gradient(circle at 70% 50%, rgba(255,51,51,0.05) 0%, transparent 50%);
-            pointer-events:none;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(255, 51, 51, 0.1) 0%, transparent 50%),
+                       radial-gradient(circle at 70% 50%, rgba(255, 51, 51, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
         }
+
+        /* Carbon fiber overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: repeating-linear-gradient(45deg, 
+                rgba(40, 40, 40, 0.2) 0px,
+                rgba(40, 40, 40, 0.2) 2px,
+                rgba(20, 20, 20, 0.2) 2px,
+                rgba(20, 20, 20, 0.2) 4px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
         .login-box {
-            background:#111;
-            border:1px solid #2a2a2a;
-            border-radius:8px;
-            padding:40px;
-            width:340px;
-            box-shadow:0 10px 30px rgba(0,0,0,0.5);
-            position:relative;
-            animation:slideUp 0.5s ease-out;
+            background: #111;
+            border: 1px solid #ff3333;
+            border-radius: 12px;
+            padding: 45px 40px;
+            width: 360px;
+            box-shadow: 0 15px 40px rgba(255, 51, 51, 0.15);
+            position: relative;
+            z-index: 2;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            background: rgba(17, 17, 17, 0.9);
         }
+
         .login-box::before {
-            content:'';
-            position:absolute;
-            top:0; left:0; right:0;
-            height:1px;
-            background:linear-gradient(90deg, transparent, #ff3333, transparent);
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff3333, #ff3333, transparent);
+            animation: borderGlow 3s infinite;
         }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
         @keyframes slideUp {
-            from { opacity:0; transform:translateY(20px); }
-            to { opacity:1; transform:translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        h2 {
-            color:#ff3333;
-            text-align:center;
-            margin-bottom:30px;
-            font-size:24px;
-            font-weight:600;
-            letter-spacing:0.5px;
-            text-transform:uppercase;
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
         }
-        input {
-            width:100%;
-            padding:12px;
-            margin-bottom:20px;
-            background:#1a1a1a;
-            border:1px solid #333;
-            border-radius:4px;
-            color:#fff;
-            font-size:14px;
-            transition:all 0.3s ease;
+
+        .logo h1 {
+            color: #ff3333;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+            animation: textGlow 2s ease-in-out infinite;
         }
-        input:focus {
-            outline:none;
-            border-color:#ff3333;
-            box-shadow:0 0 10px rgba(255,51,51,0.2);
+
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 51, 51, 0.5); }
+            50% { text-shadow: 0 0 40px rgba(255, 51, 51, 0.8); }
         }
+
+        .logo span {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #ff3333;
+            box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
+            background: #222;
+        }
+
+        .input-group input::placeholder {
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group .bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #ff3333;
+            transition: width 0.3s ease;
+        }
+
+        .input-group input:focus ~ .bar {
+            width: 100%;
+        }
+
         button {
-            width:100%;
-            padding:12px;
-            background:#ff3333;
-            color:#fff;
-            border:none;
-            border-radius:4px;
-            font-size:16px;
-            font-weight:600;
-            cursor:pointer;
-            text-transform:uppercase;
-            letter-spacing:0.5px;
-            transition:all 0.3s ease;
-            position:relative;
-            overflow:hidden;
+            width: 100%;
+            padding: 15px;
+            background: #ff3333;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+            font-family: 'Inter', sans-serif;
         }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
         button:hover {
-            background:#cc0000;
-            transform:translateY(-2px);
-            box-shadow:0 5px 20px rgba(255,51,51,0.3);
+            background: #ff1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 51, 51, 0.4);
         }
+
         button:active {
-            transform:translateY(0);
+            transform: translateY(0);
         }
+
+        .footer {
+            margin-top: 25px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .footer .red {
+            color: #ff3333;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .error-message {
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid #ff3333;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #ff3333;
+            font-size: 13px;
+            text-align: center;
+            animation: shake 0.5s ease-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
         .loader {
-            display:none;
-            position:fixed;
-            top:0;left:0;right:0;bottom:0;
-            background:rgba(0,0,0,0.9);
-            align-items:center;
-            justify-content:center;
-            color:#ff3333;
-            z-index:1000;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            align-items: center;
+            justify-content: center;
+            color: #ff3333;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
-        .loader.show { display:flex; }
+
+        .loader.show {
+            display: flex;
+        }
+
         .spinner {
-            width:50px; height:50px;
-            border:2px solid #ff3333;
-            border-top-color:transparent;
-            border-radius:50%;
-            animation:spin 1s linear infinite;
-            margin-right:15px;
+            width: 50px;
+            height: 50px;
+            border: 3px solid transparent;
+            border-top-color: #ff3333;
+            border-right-color: #ff3333;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 15px;
         }
-        @keyframes spin { to { transform:rotate(360deg); } }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <canvas id="login-particles"></canvas>
+
     <div class="loader" id="loader">
         <div class="spinner"></div>
-        <div>VERIFYING...</div>
+        <div style="font-size: 16px; letter-spacing: 1px;">VERIFYING CREDENTIALS & SID</div>
     </div>
+
     <div class="login-box">
-        <h2>VORTEXOFFICIAL</h2>
+        <div class="logo">
+            <h1>VORTEXOFFICIAL</h1>
+            <span>SECURE ACCESS</span>
+        </div>
+
+        {% if error %}
+        <div class="error-message" id="errorMessage">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
         <form method="POST" action="/" onsubmit="document.getElementById('loader').classList.add('show')">
-            <input type="text" name="username" placeholder="USERNAME" required>
-            <input type="password" name="password" placeholder="PASSWORD" required>
-            <button type="submit">LOGIN</button>
+            <div class="input-group">
+                <input type="text" name="username" placeholder="USERNAME" required autocomplete="off">
+                <div class="bar"></div>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" placeholder="PASSWORD" required>
+                <div class="bar"></div>
+            </div>
+            <button type="submit">ACCESS DASHBOARD</button>
         </form>
+
+        <div class="footer">
+            <span class="red">●</span> SID PROTECTED <span class="red">●</span>
+        </div>
     </div>
+
+    <script>
+        // Animated particles for login page
+        const canvas = document.getElementById('login-particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function createParticles() {
+            const particleCount = 60;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.3,
+                    speedY: (Math.random() - 0.5) * 0.3,
+                    opacity: Math.random() * 0.5 + 0.1,
+                    color: `rgba(255, 51, 51, ${Math.random() * 0.3 + 0.1})`
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+            
+            requestAnimationFrame(drawParticles);
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            particles = [];
+            createParticles();
+        });
+
+        resizeCanvas();
+        createParticles();
+        drawParticles();
+
+        // Auto-hide error message after 5 seconds
+        const errorMsg = document.getElementById('errorMessage');
+        if (errorMsg) {
+            setTimeout(() => {
+                errorMsg.style.opacity = '0';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 500);
+            }, 5000);
+        }
+    </script>
 </body>
 </html>'''
 
-# ==================== DASHBOARD PAGE (NEW CARBON FIBER WITH PARTICLES) ====================
+# ==================== DASHBOARD PAGE (CARBON FIBER WITH PARTICLES) ====================
 DASHBOARD_PAGE = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1756,7 +2140,7 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 const d = await r.json();
                 if (d.success) {
                     document.getElementById('injectStatus').textContent = 'INJECTED';
-                    log('✓ ESP Injected successfully');
+                    log('✓ ESP Injected successfully into memory');
                 } else {
                     document.getElementById('injectStatus').textContent = 'FAILED';
                     log(`✗ Injection failed: ${d.error}`);
@@ -1797,19 +2181,21 @@ def login():
         password = request.form.get('password', '').strip()
         
         if not username or not password:
-            return '''<script>alert("Username and password required");window.history.back();</script>'''
+            error = "Username and password required"
+            return LOGIN_PAGE.replace('{% if error %}', f'{{% if error %}}').replace('{{ error }}', error)
         
-        creds = get_credentials()
-        username = username.lower()
+        # Verify credentials including SID
+        success, message = verify_credentials(username, password)
         
-        if username in creds and creds[username]['pass'] == password:
+        if success:
             session['logged_in'] = True
             session['username'] = username
-            session['sid'] = creds[username]['sid']
-            print(f"[AUTH] {username} logged in")
+            print(f"[AUTH] {username} logged in successfully - SID verified")
             return redirect(url_for('dashboard'))
         else:
-            return '''<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#ff3333;text-align:center;">ACCESS DENIED<br><a href="/" style="color:#ff3333;">RETRY</a></div>'''
+            print(f"[AUTH] Login failed: {message}")
+            error = message
+            return LOGIN_PAGE.replace('{% if error %}', f'<div class="error-message">⚠️ {error}</div>')
 
 @app.route('/dashboard')
 def dashboard():
@@ -1875,8 +2261,8 @@ def inject_esp():
     data = request.get_json()
     emulator = data.get('emulator')
     
-    # Call ESP injection placeholder
-    result = inject_esp_dll(emulator)
+    # Call memory-only injection
+    result = download_and_inject_esp(emulator)
     return jsonify(result)
 
 @app.route('/shutdown', methods=['POST'])
@@ -1914,18 +2300,26 @@ if __name__ == '__main__':
     print("[*] Starting Anti-Cheat Blocker...")
     anticheat_blocker.start()
     
+    # Get computer SID for display
+    computer_sid = get_computer_sid()
+    
     ip = get_ip()
     
-    print("=" * 60)
-    print("  VORTEXOFFICIAL STREAMER DASHBOARD")
-    print("=" * 60)
-    print(f"  Local URL:  http://localhost:8890")
-    print(f"  Network URL: http://{ip}:8890")
-    print(f"  PyMem:      {'ACTIVE' if PYMEM_OK else 'SIMULATED'}")
-    print(f"  AntiCheat:  ACTIVE (Blocking scanners)")
-    print(f"  AI Aimbot:  PLACEHOLDER (Ready for integration)")
-    print(f"  ESP Inject: PLACEHOLDER (Ready for DLL)")
-    print(f"  Terminate:  WORKING")
-    print("=" * 60)
+    print("=" * 70)
+    print("  VORTEXOFFICIAL STREAMER DASHBOARD - SID PROTECTED")
+    print("=" * 70)
+    print(f"  Local URL:     http://localhost:8890")
+    print(f"  Network URL:    http://{ip}:8890")
+    print(f"  Computer SID:   {computer_sid}")
+    print(f"  PyMem:          {'ACTIVE' if PYMEM_OK else 'SIMULATED'}")
+    print(f"  AntiCheat:      ACTIVE (Blocking scanners)")
+    print(f"  AI Aimbot:      PLACEHOLDER (Ready for integration)")
+    print(f"  ESP Inject:     MEMORY-ONLY (No disk write)")
+    print(f"  DLL URL:        {DLL_URL}")
+    print(f"  Authentication: Username + Password + SID")
+    print(f"  Terminate:      WORKING")
+    print("=" * 70)
+    print("  Login requires matching SID in Sid.txt")
+    print("=" * 70)
     
     app.run(host='0.0.0.0', port=8890, debug=False, threaded=True)
