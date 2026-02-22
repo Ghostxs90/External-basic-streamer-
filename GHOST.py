@@ -339,10 +339,7 @@ except ImportError:
 # Global variables
 aimbot_addresses = []
 original_value = []
-aim_legit_active = False
-aim_legit_mode = "hold"
-aim_legit_key = "xbutton1"
-aim_legit_target = "neck"
+ai_aimbot_active = False  # Placeholder for AI aimbot
 
 def mkp(aob: str):
     """Pattern converter"""
@@ -361,7 +358,7 @@ def mkp(aob: str):
 def HEADLOAD():
     """Scan for players"""
     if not PYMEM_OK:
-        return "[SIMULATED] Player scan completed"
+        return "[SIMULATED] Player scan completed - Found 12 players"
     try:
         proc = Pymem("HD-Player.exe")
     except:
@@ -512,110 +509,140 @@ def AddRecoil():
         except:
             pass
 
-# ==================== AIM LEGIT FUNCTIONS ====================
-def set_aim_legit_target(target):
-    global aim_legit_target
-    aim_legit_target = target
-    return f"Target set to {target}"
+# ==================== AI AIMBOT PLACEHOLDER FUNCTIONS ====================
+def ai_aimbot_on():
+    """Placeholder for AI aimbot enable"""
+    global ai_aimbot_active
+    ai_aimbot_active = True
+    # TODO: Implement actual AI aimbot logic
+    # This will be replaced with actual AI aimbot code
+    return "[AI AIMBOT] AI aimbot enabled - Ready for integration"
 
-def set_aim_legit_mode(mode):
-    global aim_legit_mode
-    aim_legit_mode = mode
-    return f"Mode set to {mode}"
+def ai_aimbot_off():
+    """Placeholder for AI aimbot disable"""
+    global ai_aimbot_active
+    ai_aimbot_active = False
+    # TODO: Implement actual AI aimbot disable logic
+    return "[AI AIMBOT] AI aimbot disabled"
 
-def set_aim_legit_key(key):
-    global aim_legit_key
-    aim_legit_key = key
-    return f"Key set to {key}"
-
-def aim_legit_activate():
-    global aim_legit_active
-    aim_legit_active = True
-    if aim_legit_target == "neck":
-        return HEADON()
-    elif aim_legit_target == "left":
-        return LEFTSHOULDERON()
-    elif aim_legit_target == "right":
-        return RIGHTSHOULDERON()
-    return "Aim Legit activated"
-
-def aim_legit_deactivate():
-    global aim_legit_active
-    aim_legit_active = False
-    return HEADOFF()
-
-def aim_legit_toggle():
-    global aim_legit_active
-    if aim_legit_active:
-        return aim_legit_deactivate()
-    else:
-        return aim_legit_activate()
-
-def aim_legit_status():
-    return {
-        'active': aim_legit_active,
-        'mode': aim_legit_mode,
-        'key': aim_legit_key,
-        'target': aim_legit_target
-    }
+# ==================== ESP INJECTION PLACEHOLDER ====================
+def inject_esp_dll(emulator, dll_name="esp_v1.dll"):
+    """Placeholder for ESP DLL injection"""
+    # TODO: Implement actual DLL injection
+    # This will be replaced with actual DLL injection code
+    try:
+        # Check if HD-Player is running
+        proc_found = False
+        for proc in psutil.process_iter(['name']):
+            if proc.info['name'] and proc.info['name'].lower() == 'hd-player.exe':
+                proc_found = True
+                break
+        
+        if not proc_found:
+            return {
+                'success': False, 
+                'error': 'HD-Player.exe not found - Launch emulator first'
+            }
+        
+        # Simulate injection based on emulator
+        if emulator == 'msi':
+            # MSI specific injection logic placeholder
+            time.sleep(1.5)  # Simulate injection time
+            return {
+                'success': True,
+                'message': f'ESP injected successfully into MSI (HD-Player.exe)',
+                'dll': dll_name
+            }
+        elif emulator == 'bluestacks':
+            # BlueStacks specific injection logic placeholder
+            time.sleep(1.5)  # Simulate injection time
+            return {
+                'success': True,
+                'message': f'ESP injected successfully into BlueStacks (HD-Player.exe)',
+                'dll': dll_name
+            }
+        else:
+            return {'success': False, 'error': 'Invalid emulator selected'}
+            
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
 
 # ==================== FLASK SETUP ====================
 app = Flask(__name__)
 app.secret_key = "ghost-xs-red-2024"
 
-# Hybrid mode globals
-hybrid_active = False
-hybrid_aim1 = None
-hybrid_aim2 = None
-hybrid_frequency = 50
-hybrid_current = None
-hybrid_count = 0
-hybrid_last_switch = None
-
 # ==================== LOGIN PAGE ====================
 LOGIN_PAGE = '''<!DOCTYPE html>
 <html>
 <head>
-    <title>GHOST-XS</title>
+    <title>VortexOffcial • Login</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             background:#0a0a0a;
-            font-family:'Segoe UI', sans-serif;
+            font-family:'Inter', sans-serif;
             height:100vh;
             display:flex;
             align-items:center;
             justify-content:center;
+            position:relative;
+            overflow:hidden;
+        }
+        body::before {
+            content:'';
+            position:absolute;
+            top:0; left:0; right:0; bottom:0;
+            background:radial-gradient(circle at 30% 50%, rgba(255,51,51,0.05) 0%, transparent 50%),
+                       radial-gradient(circle at 70% 50%, rgba(255,51,51,0.05) 0%, transparent 50%);
+            pointer-events:none;
         }
         .login-box {
             background:#111;
-            border:1px solid #ff3333;
+            border:1px solid #2a2a2a;
             border-radius:8px;
             padding:40px;
             width:340px;
-            box-shadow:0 0 20px rgba(255,51,51,0.3);
+            box-shadow:0 10px 30px rgba(0,0,0,0.5);
+            position:relative;
+            animation:slideUp 0.5s ease-out;
+        }
+        .login-box::before {
+            content:'';
+            position:absolute;
+            top:0; left:0; right:0;
+            height:1px;
+            background:linear-gradient(90deg, transparent, #ff3333, transparent);
+        }
+        @keyframes slideUp {
+            from { opacity:0; transform:translateY(20px); }
+            to { opacity:1; transform:translateY(0); }
         }
         h2 {
             color:#ff3333;
             text-align:center;
             margin-bottom:30px;
             font-size:24px;
+            font-weight:600;
+            letter-spacing:0.5px;
+            text-transform:uppercase;
         }
         input {
             width:100%;
             padding:12px;
             margin-bottom:20px;
-            background:#222;
+            background:#1a1a1a;
             border:1px solid #333;
             border-radius:4px;
             color:#fff;
             font-size:14px;
+            transition:all 0.3s ease;
         }
         input:focus {
             outline:none;
             border-color:#ff3333;
+            box-shadow:0 0 10px rgba(255,51,51,0.2);
         }
         button {
             width:100%;
@@ -625,11 +652,21 @@ LOGIN_PAGE = '''<!DOCTYPE html>
             border:none;
             border-radius:4px;
             font-size:16px;
-            font-weight:bold;
+            font-weight:600;
             cursor:pointer;
+            text-transform:uppercase;
+            letter-spacing:0.5px;
+            transition:all 0.3s ease;
+            position:relative;
+            overflow:hidden;
         }
         button:hover {
             background:#cc0000;
+            transform:translateY(-2px);
+            box-shadow:0 5px 20px rgba(255,51,51,0.3);
+        }
+        button:active {
+            transform:translateY(0);
         }
         .loader {
             display:none;
@@ -639,11 +676,12 @@ LOGIN_PAGE = '''<!DOCTYPE html>
             align-items:center;
             justify-content:center;
             color:#ff3333;
+            z-index:1000;
         }
         .loader.show { display:flex; }
         .spinner {
             width:50px; height:50px;
-            border:3px solid #ff3333;
+            border:2px solid #ff3333;
             border-top-color:transparent;
             border-radius:50%;
             animation:spin 1s linear infinite;
@@ -658,7 +696,7 @@ LOGIN_PAGE = '''<!DOCTYPE html>
         <div>VERIFYING...</div>
     </div>
     <div class="login-box">
-        <h2>GHOST-XS</h2>
+        <h2>VORTEXOFFICIAL</h2>
         <form method="POST" action="/" onsubmit="document.getElementById('loader').classList.add('show')">
             <input type="text" name="username" placeholder="USERNAME" required>
             <input type="password" name="password" placeholder="PASSWORD" required>
@@ -668,506 +706,770 @@ LOGIN_PAGE = '''<!DOCTYPE html>
 </body>
 </html>'''
 
-# ==================== DASHBOARD PAGE (RED THEME) ====================
+# ==================== DASHBOARD PAGE (NEW CARBON FIBER WITH PARTICLES) ====================
 DASHBOARD_PAGE = '''<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>GHOST-XS DASHBOARD</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VortexOffcial • Dashboard</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background:#0a0a0a;
-            font-family:'Segoe UI', monospace;
-            color:#fff;
-            padding:20px;
+            background: #0a0a0a;
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
         }
+
+        /* Animated particles background */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Carbon fiber overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: repeating-linear-gradient(45deg, 
+                rgba(40, 40, 40, 0.3) 0px,
+                rgba(40, 40, 40, 0.3) 2px,
+                rgba(20, 20, 20, 0.3) 2px,
+                rgba(20, 20, 20, 0.3) 4px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
         .container {
-            max-width:1200px;
-            margin:0 auto;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
+
+        /* Header with glow animation */
         .header {
-            background:#111;
-            border:1px solid #ff3333;
-            border-radius:8px;
-            padding:20px;
-            margin-bottom:20px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 18px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            animation: slideDown 0.5s ease-out;
         }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            100% { left: 100%; }
+        }
+
         .logo {
-            color:#ff3333;
-            font-size:24px;
-            font-weight:bold;
+            color: #ff3333;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            position: relative;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
+            animation: glow 2s ease-in-out infinite;
         }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px rgba(255, 51, 51, 0.3); }
+            50% { text-shadow: 0 0 20px rgba(255, 51, 51, 0.6); }
+        }
+
         .status {
-            display:flex;
-            gap:20px;
+            display: flex;
+            gap: 25px;
         }
+
         .stat-item {
-            text-align:center;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            min-width: 80px;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
         }
+
+        .stat-item:hover {
+            border-color: #ff3333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 51, 51, 0.2);
+        }
+
         .stat-label {
-            font-size:12px;
-            color:#888;
-            margin-bottom:5px;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
+
         .stat-value {
-            font-size:14px;
-            color:#ff3333;
-            font-weight:bold;
+            font-size: 14px;
+            color: #ff3333;
+            font-weight: 600;
         }
+
+        /* Navigation with slide animations */
         .nav {
-            display:flex;
-            gap:10px;
-            margin-bottom:20px;
-            background:#111;
-            padding:5px;
-            border-radius:8px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            background: #111;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+            animation: slideUp 0.5s ease-out 0.1s both;
         }
+
         .nav-btn {
-            flex:1;
-            padding:12px;
-            background:transparent;
-            border:none;
-            color:#888;
-            font-size:14px;
-            font-weight:bold;
-            cursor:pointer;
-            border-radius:6px;
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
         }
+
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #ff3333;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-btn:hover::after {
+            width: 80%;
+        }
+
         .nav-btn:hover {
-            background:#222;
-            color:#fff;
+            color: #999;
+            background: #1a1a1a;
         }
+
         .nav-btn.active {
-            background:#ff3333;
-            color:#fff;
+            background: #ff3333;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(255, 51, 51, 0.3);
+            animation: pulse 2s infinite;
         }
+
+        .nav-btn.active::after {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 2px 10px rgba(255, 51, 51, 0.3); }
+            50% { box-shadow: 0 2px 20px rgba(255, 51, 51, 0.6); }
+        }
+
+        /* Panels with scale animations */
         .panel {
-            display:none;
-            background:#111;
-            border:1px solid #333;
-            border-radius:8px;
-            padding:25px;
-            margin-bottom:20px;
+            display: none;
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            transform-origin: top;
+            animation: panelFade 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        @keyframes panelFade {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
         .panel.active {
-            display:block;
+            display: block;
         }
-        .panel-title {
-            color:#ff3333;
-            font-size:18px;
-            margin-bottom:20px;
-            padding-bottom:10px;
-            border-bottom:1px solid #333;
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff3333, transparent);
+            opacity: 0.3;
+            animation: borderGlow 3s infinite;
         }
-        .grid {
-            display:grid;
-            grid-template-columns:repeat(2,1fr);
-            gap:20px;
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
         }
-        .module {
-            background:#1a1a1a;
-            border:1px solid #333;
-            border-radius:6px;
-            padding:20px;
+
+        .section-title {
+            color: #ff3333;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2a2a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            animation: slideInRight 0.4s ease-out;
         }
-        .module-title {
-            color:#ff3333;
-            font-size:14px;
-            font-weight:bold;
-            margin-bottom:10px;
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 50px;
+            height: 1px;
+            background: #ff3333;
+            animation: widthPulse 2s ease-in-out infinite;
         }
-        .module-desc {
-            color:#888;
-            font-size:12px;
-            margin-bottom:15px;
+
+        @keyframes widthPulse {
+            0%, 100% { width: 50px; }
+            50% { width: 80px; }
         }
-        button {
-            width:100%;
-            padding:10px;
-            margin-bottom:8px;
-            background:#222;
-            border:1px solid #444;
-            color:#fff;
-            border-radius:4px;
-            cursor:pointer;
-            font-size:12px;
-            font-weight:bold;
+
+        /* Row animations */
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            animation: slideInRight 0.4s ease-out;
+            animation-fill-mode: both;
         }
-        button:hover {
-            background:#ff3333;
-            border-color:#ff3333;
+
+        .row:nth-child(2) { animation-delay: 0.1s; }
+        .row:nth-child(3) { animation-delay: 0.15s; }
+        .row:nth-child(4) { animation-delay: 0.2s; }
+        .row:nth-child(5) { animation-delay: 0.25s; }
+
+        .row-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+            margin-bottom: 25px;
+            animation: slideInRight 0.4s ease-out 0.2s both;
         }
-        button.primary {
-            background:#ff3333;
-            border-color:#ff3333;
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
-        button.exit-btn {
-            background:#ff3333;
-            border-color:#ff3333;
-            margin-top:20px;
-            padding:15px;
-            font-size:14px;
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        select {
-            width:100%;
-            padding:10px;
-            margin-bottom:15px;
-            background:#222;
-            border:1px solid #444;
-            color:#fff;
-            border-radius:4px;
-            cursor:pointer;
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .label {
+            color: #999;
+            font-size: 14px;
+            font-weight: 400;
+            min-width: 130px;
+            text-align: right;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            font-size: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .row:hover .label {
+            color: #ff3333;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-group-vertical {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-small {
+            padding: 8px 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #999;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            min-width: 70px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-small::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .btn-small:hover::before {
+            width: 150px;
+            height: 150px;
+        }
+
+        .btn-small:hover {
+            background: #222;
+            border-color: #444;
+            color: #ccc;
+            transform: translateY(-1px);
+        }
+
+        .btn-small:active {
+            transform: translateY(0);
+        }
+
+        .btn-small.active, .btn-small.primary {
+            background: #ff3333;
+            border-color: #ff3333;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(255, 51, 51, 0.3);
+            animation: buttonPulse 2s infinite;
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 2px 8px rgba(255, 51, 51, 0.3); }
+            50% { box-shadow: 0 2px 15px rgba(255, 51, 51, 0.6); }
+        }
+
+        .btn-small.active:hover, .btn-small.primary:hover {
+            background: #ff1a1a;
+            border-color: #ff1a1a;
+        }
+
+        .btn-small.success {
+            background: #1a4d1a;
+            border-color: #2d6a2d;
+            color: #fff;
+        }
+
+        .btn-small.success:hover {
+            background: #236b23;
+        }
+
+        select.small {
+            padding: 8px 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 400;
+            cursor: pointer;
+            width: 170px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        select.small:hover {
+            border-color: #ff3333;
+            background-color: #222;
+            transform: translateY(-1px);
+        }
+
+        select.small option {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
         .badge {
-            display:inline-block;
-            padding:4px 8px;
-            background:#222;
-            border:1px solid #ff3333;
-            border-radius:4px;
-            color:#ff3333;
-            font-size:11px;
+            display: inline-block;
+            padding: 5px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #ff3333;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            animation: badgePulse 3s infinite;
         }
-        .monitor {
-            background:#1a1a1a;
-            border:1px solid #333;
-            border-radius:6px;
-            padding:15px;
-            margin-top:15px;
+
+        @keyframes badgePulse {
+            0%, 100% { border-color: #333; }
+            50% { border-color: #ff3333; }
         }
-        .monitor-row {
-            display:flex;
-            justify-content:space-between;
-            margin-bottom:10px;
-            font-size:13px;
+
+        .badge:hover {
+            border-color: #ff3333;
+            transform: scale(1.05);
         }
-        .key-bind {
-            background:#222;
-            border:1px solid #444;
-            border-radius:4px;
-            padding:12px;
-            margin-bottom:15px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
+
+        .emulator-box {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 25px;
+            flex-wrap: wrap;
+            position: relative;
+            transition: all 0.3s ease;
+            animation: slideInRight 0.4s ease-out;
         }
-        .key-bind span {
-            color:#ff3333;
-            font-weight:bold;
+
+        .emulator-box:hover {
+            border-color: #ff3333;
+            box-shadow: 0 5px 20px rgba(255, 51, 51, 0.15);
         }
-        .mode-selector {
-            display:flex;
-            gap:10px;
-            margin-bottom:15px;
+
+        .radio-group {
+            display: flex;
+            gap: 25px;
         }
-        .mode-btn {
-            flex:1;
-            padding:10px;
-            background:#222;
-            border:1px solid #444;
-            color:#888;
-            border-radius:4px;
-            cursor:pointer;
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
         }
-        .mode-btn.active {
-            background:#ff3333;
-            color:#fff;
-            border-color:#ff3333;
+
+        .radio-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #ff3333;
+            cursor: pointer;
+            background: #1a1a1a;
+            transition: all 0.2s ease;
         }
+
+        .radio-option label {
+            color: #ccc;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: color 0.3s ease;
+        }
+
+        .radio-option:hover {
+            transform: translateX(-2px);
+        }
+
+        .radio-option:hover label {
+            color: #ff3333;
+        }
+
+        /* Terminal with slide animation */
         .terminal {
-            background:#111;
-            border:1px solid #333;
-            border-radius:6px;
-            margin-top:20px;
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            margin-top: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out 0.3s both;
         }
+
+        .terminal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff3333, transparent);
+            opacity: 0.2;
+            animation: borderGlow 3s infinite;
+        }
+
         .terminal-header {
-            background:#1a1a1a;
-            padding:10px 15px;
-            border-bottom:1px solid #333;
-            color:#ff3333;
-            font-size:13px;
-            font-weight:bold;
+            background: #1a1a1a;
+            padding: 10px 15px;
+            border-bottom: 1px solid #2a2a2a;
+            color: #ff3333;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .terminal-content {
-            padding:15px;
-            min-height:150px;
-            max-height:200px;
-            overflow-y:auto;
-            font-size:12px;
-            color:#ccc;
+            padding: 15px;
+            min-height: 120px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #999;
+            font-family: 'Inter', monospace;
+            background: #0c0c0c;
         }
+
+        .terminal-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .terminal-content::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .terminal-content::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .terminal-content::-webkit-scrollbar-thumb:hover {
+            background: #ff3333;
+        }
+
         .log {
-            margin-bottom:5px;
-            border-left:2px solid #ff3333;
-            padding-left:10px;
+            margin-bottom: 5px;
+            border-left: 1px solid #ff3333;
+            padding-left: 10px;
+            font-family: 'Inter', monospace;
+            color: #bbb;
+            animation: slideInLeft 0.3s ease-out;
         }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .log-time {
-            color:#666;
-            margin-right:10px;
+            color: #666;
+            margin-right: 10px;
+            font-size: 11px;
         }
-        .flex {
-            display:flex;
-            gap:10px;
-        }
+
+        .mt-10 { margin-top: 10px; }
+        .mb-10 { margin-bottom: 10px; }
+        .ml-10 { margin-left: 10px; }
+        .flex { display: flex; align-items: center; gap: 15px; }
     </style>
 </head>
 <body>
+    <!-- Animated Particles Canvas -->
+    <canvas id="particles-canvas"></canvas>
+
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <div class="logo">GHOST-XS</div>
+            <div class="logo">VORTEXOFFICIAL</div>
             <div class="status">
                 <div class="stat-item">
-                    <div class="stat-label">SYSTEM</div>
+                    <div class="stat-label">STATUS</div>
                     <div class="stat-value" id="sysStat">ONLINE</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">GAME</div>
                     <div class="stat-value" id="gameStat">OFFLINE</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">AIM</div>
-                    <div class="stat-value" id="aimStat">OFF</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">ANTICHEAT</div>
-                    <div class="stat-value" id="acStat">ACTIVE</div>
-                </div>
             </div>
         </div>
 
+        <!-- Navigation -->
         <div class="nav">
             <button class="nav-btn active" onclick="switchTab('aimbot')">AIMBOT</button>
-            <button class="nav-btn" onclick="switchTab('hybrid')">HYBRID</button>
-            <button class="nav-btn" onclick="switchTab('aimlegit')">AIM LEGIT</button>
-            <button class="nav-btn" onclick="switchTab('settings')">SETTINGS</button>
+            <button class="nav-btn" onclick="switchTab('visuals')">VISUALS</button>
         </div>
 
-        <!-- AIMBOT PANEL -->
+        <!-- TAB 1: AIMBOT -->
         <div class="panel active" id="aimbot">
-            <div class="panel-title">AIMBOT CONTROLS</div>
-            <div class="grid">
-                <div class="module">
-                    <div class="module-title">PLAYER SCANNER</div>
-                    <div class="module-desc">Scan for players in game</div>
-                    <button onclick="runCmd('aimbotscan')">SCAN NOW</button>
-                    <span class="badge" id="scanStat">READY</span>
+            <div class="section-title">AIMBOT CONTROLS</div>
+            
+            <!-- SCAN -->
+            <div class="row">
+                <span class="label">PLAYER SCAN</span>
+                <div class="btn-group">
+                    <button class="btn-small primary" onclick="runCmd('aimbotscan', this)">SCAN</button>
                 </div>
-                <div class="module">
-                    <div class="module-title">AIM SELECTOR</div>
-                    <div class="module-desc">Select target bone</div>
-                    <select id="aimSelect">
-                        <option value="off">DISABLED</option>
-                        <option value="neck">NECK</option>
+                <span class="badge" id="scanStat">0</span>
+            </div>
+
+            <!-- NECK ON/OFF -->
+            <div class="row">
+                <span class="label">NECK</span>
+                <div class="btn-group" id="neckGroup">
+                    <button class="btn-small" onclick="runCmd('neckon', this)">ON</button>
+                    <button class="btn-small active" onclick="runCmd('neckoff', this)">OFF</button>
+                </div>
+            </div>
+
+            <!-- LEGIT AIMBOT - VERTICAL LAYOUT -->
+            <div class="row-vertical">
+                <span class="label">LEGIT AIMBOT</span>
+                <div class="flex">
+                    <select class="small" id="legitSelect">
                         <option value="left">LEFT SHOULDER</option>
                         <option value="right">RIGHT SHOULDER</option>
                     </select>
-                    <button onclick="toggleAim()" id="aimBtn">ENABLE</button>
-                </div>
-                <div class="module">
-                    <div class="module-title">RECOIL CONTROL</div>
-                    <div class="module-desc">Remove weapon recoil</div>
-                    <div class="flex">
-                        <button onclick="runCmd('removerecoil')">ON</button>
-                        <button onclick="runCmd('addrecoil')">OFF</button>
+                    <div class="btn-group" id="legitGroup">
+                        <button class="btn-small" onclick="legitOn(this)">ON</button>
+                        <button class="btn-small active" onclick="legitOff(this)">OFF</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- VORTEX OFFICIAL SPECIAL AIMBOT -->
+            <div class="section-title mt-10">VORTEX OFFICIAL SPECIAL AIMBOT</div>
+            
+            <!-- AIMBOT AI ON/OFF -->
+            <div class="row">
+                <span class="label">AIMBOT AI</span>
+                <div class="btn-group" id="aiGroup">
+                    <button class="btn-small" onclick="runCmd('aion', this)">ON</button>
+                    <button class="btn-small active" onclick="runCmd('aioff', this)">OFF</button>
                 </div>
             </div>
         </div>
 
-        <!-- HYBRID PANEL -->
-        <div class="panel" id="hybrid">
-            <div class="panel-title">HYBRID SYSTEM</div>
-            <div class="grid">
-                <div class="module">
-                    <div class="module-title">HYBRID CONFIG</div>
-                    <div class="module-desc">Configure alternating aim</div>
-                    <select id="hybAim1">
-                        <option value="neck">NECK</option>
-                        <option value="left">LEFT SHOULDER</option>
-                        <option value="right">RIGHT SHOULDER</option>
-                    </select>
-                    <select id="hybAim2">
-                        <option value="left">LEFT SHOULDER</option>
-                        <option value="neck">NECK</option>
-                        <option value="right">RIGHT SHOULDER</option>
-                    </select>
-                    <select id="hybFreq">
-                        <option value="30">30ms (FAST)</option>
-                        <option value="50" selected>50ms (MEDIUM)</option>
-                        <option value="80">80ms (SLOW)</option>
-                    </select>
-                    <button class="primary" onclick="toggleHybrid()" id="hybBtn">ACTIVATE</button>
-                </div>
-                <div class="module">
-                    <div class="module-title">HYBRID MONITOR</div>
-                    <div class="monitor">
-                        <div class="monitor-row">
-                            <span>CURRENT</span>
-                            <span id="hybCurrent">NONE</span>
-                        </div>
-                        <div class="monitor-row">
-                            <span>SWITCHES</span>
-                            <span id="hybCount">0</span>
-                        </div>
-                        <div class="monitor-row">
-                            <span>STATUS</span>
-                            <span id="hybState">OFF</span>
-                        </div>
+        <!-- TAB 2: VISUALS -->
+        <div class="panel" id="visuals">
+            <div class="section-title">ESP INJECTION</div>
+            
+            <div class="emulator-box">
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" name="emulator" id="msi" value="msi" onchange="selectEmulator('msi')">
+                        <label for="msi">MSI</label>
                     </div>
-                    <button onclick="resetHybrid()">RESET</button>
+                    <div class="radio-option">
+                        <input type="radio" name="emulator" id="bluestacks" value="bluestacks" onchange="selectEmulator('bluestacks')">
+                        <label for="bluestacks">BLUESTACKS</label>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- AIM LEGIT PANEL -->
-        <div class="panel" id="aimlegit">
-            <div class="panel-title">AIM LEGIT MODE</div>
-            <div class="grid">
-                <div class="module">
-                    <div class="module-title">CONFIGURATION</div>
-                    <div class="module-desc">Configure aim on key press</div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">TARGET</div>
-                        <select id="legitTarget" onchange="updateLegitTarget()">
-                            <option value="neck">NECK</option>
-                            <option value="left">LEFT SHOULDER</option>
-                            <option value="right">RIGHT SHOULDER</option>
-                        </select>
-                    </div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">MOUSE BUTTONS</div>
-                        <select id="legitKey" onchange="updateLegitKey()">
-                            <option value="xbutton1">MOUSE 4 (Back/Thumb)</option>
-                            <option value="xbutton2">MOUSE 5 (Forward/Thumb)</option>
-                            <option value="mouse4">MOUSE 4 (Alt)</option>
-                            <option value="mouse5">MOUSE 5 (Alt)</option>
-                            <option value="mouse1">LEFT MOUSE BUTTON</option>
-                            <option value="mouse2">RIGHT MOUSE BUTTON</option>
-                            <option value="mouse3">MIDDLE MOUSE BUTTON</option>
-                        </select>
-                    </div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">KEYBOARD KEYS</div>
-                        <select id="legitKey2" onchange="updateLegitKey()">
-                            <option value="">-- SELECT KEYBOARD KEY --</option>
-                            <option value="control">CONTROL</option>
-                            <option value="shift">SHIFT</option>
-                            <option value="alt">ALT</option>
-                            <option value="capslock">CAPS LOCK</option>
-                            <option value="tab">TAB</option>
-                            <option value="space">SPACE</option>
-                            <option value="enter">ENTER</option>
-                            <option value="esc">ESCAPE</option>
-                            <option value="f1">F1</option>
-                            <option value="f2">F2</option>
-                            <option value="f3">F3</option>
-                            <option value="f4">F4</option>
-                            <option value="f5">F5</option>
-                            <option value="f6">F6</option>
-                            <option value="f7">F7</option>
-                            <option value="f8">F8</option>
-                            <option value="f9">F9</option>
-                            <option value="f10">F10</option>
-                            <option value="f11">F11</option>
-                            <option value="f12">F12</option>
-                            <option value="a">A</option>
-                            <option value="b">B</option>
-                            <option value="c">C</option>
-                            <option value="d">D</option>
-                            <option value="e">E</option>
-                            <option value="f">F</option>
-                            <option value="g">G</option>
-                            <option value="h">H</option>
-                            <option value="i">I</option>
-                            <option value="j">J</option>
-                            <option value="k">K</option>
-                            <option value="l">L</option>
-                            <option value="m">M</option>
-                            <option value="n">N</option>
-                            <option value="o">O</option>
-                            <option value="p">P</option>
-                            <option value="q">Q</option>
-                            <option value="r">R</option>
-                            <option value="s">S</option>
-                            <option value="t">T</option>
-                            <option value="u">U</option>
-                            <option value="v">V</option>
-                            <option value="w">W</option>
-                            <option value="x">X</option>
-                            <option value="y">Y</option>
-                            <option value="z">Z</option>
-                        </select>
-                    </div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <div style="color:#ff3333; margin-bottom:5px; font-size:12px;">MODE</div>
-                        <div class="mode-selector">
-                            <button class="mode-btn active" id="modeHold" onclick="setLegitMode('hold')">HOLD</button>
-                            <button class="mode-btn" id="modeToggle" onclick="setLegitMode('toggle')">TOGGLE</button>
-                        </div>
-                    </div>
-                    
-                    <div class="key-bind">
-                        <span>CURRENT BIND</span>
-                        <span id="currentBind">MOUSE 4 (HOLD)</span>
-                    </div>
-                    
-                    <button class="primary" onclick="testLegit()">TEST ACTIVATION</button>
-                </div>
-                
-                <div class="module">
-                    <div class="module-title">STATUS</div>
-                    <div class="monitor">
-                        <div class="monitor-row">
-                            <span>STATE</span>
-                            <span id="legitState">INACTIVE</span>
-                        </div>
-                        <div class="monitor-row">
-                            <span>TARGET</span>
-                            <span id="legitTargetDisplay">NECK</span>
-                        </div>
-                        <div class="monitor-row">
-                            <span>MODE</span>
-                            <span id="legitModeDisplay">HOLD</span>
-                        </div>
-                        <div class="monitor-row">
-                            <span>KEY</span>
-                            <span id="legitKeyDisplay">MOUSE 4</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SETTINGS PANEL -->
-        <div class="panel" id="settings">
-            <div class="panel-title">SETTINGS</div>
-            <div class="grid">
-                <div class="module">
-                    <div class="module-title">APPLICATION</div>
-                    <div class="module-desc">Control application behavior</div>
-                    
-                    <div style="background:#1a1a1a; padding:20px; border-radius:6px; border:1px solid #333;">
-                        <div style="color:#ff3333; margin-bottom:15px; font-size:16px;">⚠️ EXIT APPLICATION</div>
-                        <div style="color:#888; font-size:13px; margin-bottom:20px;">This will completely terminate GHOST-XS. You will need to restart the script to use it again.</div>
-                        <button class="exit-btn" onclick="exitApplication()">TERMINATE NOW</button>
-                    </div>
-                    
-                    <div style="margin-top:20px; background:#1a1a1a; padding:15px; border-radius:6px; border:1px solid #333;">
-                        <div style="color:#ff3333; margin-bottom:10px;">SYSTEM INFO</div>
-                        <div style="color:#888; font-size:12px;">Status: <span style="color:#ff3333;">Running</span></div>
-                        <div style="color:#888; font-size:12px;">Port: <span style="color:#ff3333;">8890</span></div>
-                        <div style="color:#888; font-size:12px;">URL: <span style="color:#ff3333;">http://localhost:8890</span></div>
-                        <div style="color:#888; font-size:12px;">AntiCheat: <span style="color:#ff3333;" id="acStatus">ACTIVE</span></div>
-                    </div>
-                </div>
+                <button class="btn-small success" onclick="injectESP()" id="injectBtn" disabled>INJECT ESP</button>
+                <span class="badge" id="injectStatus">READY</span>
             </div>
         </div>
 
@@ -1175,27 +1477,132 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         <div class="terminal">
             <div class="terminal-header">SYSTEM TERMINAL</div>
             <div class="terminal-content" id="terminal">
-                <div class="log"><span class="log-time">[--:--:--]</span> GHOST-XS READY</div>
-                <div class="log"><span class="log-time">[--:--:--]</span> Anti-Cheat Blocker ACTIVE</div>
+                <div class="log"><span class="log-time">[⏰]</span> STREAMER IS READY</div>
             </div>
         </div>
     </div>
 
     <script>
-        let aimOn = false;
-        let hybridOn = false;
-        let hybInterval = null;
-        let legitMode = 'hold';
-        let legitTarget = 'neck';
-        let legitKey = 'xbutton1';
+        // Animated Particles
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouseX = 0;
+        let mouseY = 0;
+        let animationFrame;
 
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function createParticles() {
+            const particleCount = 80;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.5,
+                    speedY: (Math.random() - 0.5) * 0.5,
+                    opacity: Math.random() * 0.5 + 0.1,
+                    color: `rgba(255, ${Math.floor(51 + Math.random() * 50)}, ${Math.floor(51 + Math.random() * 50)}, ${Math.random() * 0.3 + 0.1})`
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                // Move particles
+                p.x += p.speedX;
+                p.y += p.speedY;
+                
+                // Mouse interaction
+                const dx = mouseX - p.x;
+                const dy = mouseY - p.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const angle = Math.atan2(dy, dx);
+                    const force = (100 - distance) / 1000;
+                    p.x -= Math.cos(angle) * force;
+                    p.y -= Math.sin(angle) * force;
+                }
+                
+                // Bounce off edges
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -0.9;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -0.9;
+                
+                // Keep within bounds
+                p.x = Math.max(0, Math.min(canvas.width, p.x));
+                p.y = Math.max(0, Math.min(canvas.height, p.y));
+                
+                // Draw particle
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                
+                // Draw connecting lines between nearby particles
+                particles.forEach(p2 => {
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < 80) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 51, 51, ${0.1 * (1 - distance/80)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            
+            animationFrame = requestAnimationFrame(drawParticles);
+        }
+
+        // Mouse move handler for particle interaction
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            particles = [];
+            createParticles();
+        });
+
+        // Initialize particles
+        resizeCanvas();
+        createParticles();
+        drawParticles();
+
+        // Clean up animation frame on page unload
+        window.addEventListener('beforeunload', () => {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+        });
+
+        // Tab switching
         function switchTab(tab) {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById(tab).classList.add('active');
+            
+            // Add click animation
+            event.target.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                event.target.style.transform = 'scale(1)';
+            }, 200);
         }
 
+        // Game status
         async function checkGame() {
             try {
                 const r = await fetch('/status');
@@ -1206,15 +1613,46 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
         setInterval(checkGame, 3000);
         checkGame();
 
+        // Logging
         function log(msg) {
             const t = document.getElementById('terminal');
             const time = new Date().toLocaleTimeString();
             t.innerHTML += `<div class="log"><span class="log-time">[${time}]</span> ${msg}</div>`;
             t.scrollTop = t.scrollHeight;
-            if (t.children.length > 30) t.children[0].remove();
+            if (t.children.length > 20) t.children[0].remove();
         }
 
-        async function runCmd(cmd) {
+        // Command execution with button state management
+        async function runCmd(cmd, btn) {
+            // Add click animation
+            if (btn) {
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    btn.style.transform = '';
+                }, 200);
+            }
+            
+            // Update button states for ON/OFF groups
+            if (cmd === 'neckon' || cmd === 'neckoff') {
+                const group = document.getElementById('neckGroup');
+                group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
+                if (cmd === 'neckon') {
+                    group.children[0].classList.add('active', 'primary');
+                } else {
+                    group.children[1].classList.add('active', 'primary');
+                }
+            }
+            
+            if (cmd === 'aion' || cmd === 'aioff') {
+                const group = document.getElementById('aiGroup');
+                group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
+                if (cmd === 'aion') {
+                    group.children[0].classList.add('active', 'primary');
+                } else {
+                    group.children[1].classList.add('active', 'primary');
+                }
+            }
+
             log(`> ${cmd}`);
             try {
                 const r = await fetch('/execute', {
@@ -1224,188 +1662,124 @@ DASHBOARD_PAGE = '''<!DOCTYPE html>
                 });
                 const d = await r.json();
                 log(d.message);
-                if (cmd === 'aimbotscan') document.getElementById('scanStat').textContent = 'SCANNED';
+                if (cmd === 'aimbotscan') {
+                    const match = d.message.match(/\d+/);
+                    document.getElementById('scanStat').textContent = match ? match[0] : '0';
+                    // Animate badge
+                    const badge = document.getElementById('scanStat');
+                    badge.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        badge.style.transform = '';
+                    }, 200);
+                }
             } catch(e) {
                 log('Command failed');
             }
         }
 
-        function toggleAim() {
-            const sel = document.getElementById('aimSelect');
-            const btn = document.getElementById('aimBtn');
+        function legitOn(btn) {
+            // Add click animation
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btn.style.transform = '';
+            }, 200);
             
-            if (sel.value === 'off') {
-                runCmd('aimbotdisable');
-                aimOn = false;
-                btn.textContent = 'ENABLE';
-                document.getElementById('aimStat').textContent = 'OFF';
-                return;
-            }
+            const val = document.getElementById('legitSelect').value;
+            const group = document.getElementById('legitGroup');
+            group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
+            group.children[0].classList.add('active', 'primary');
             
-            aimOn = !aimOn;
-            if (aimOn) {
-                btn.textContent = 'DISABLE';
-                document.getElementById('aimStat').textContent = 'ON';
-                let cmd = sel.value === 'neck' ? 'aimbotenable' : 
-                         sel.value === 'left' ? 'leftShoulderOn' : 'rightShoulderOn';
-                runCmd(cmd);
+            if (val === 'left') {
+                runCmd('leftshoulderon', btn);
             } else {
-                btn.textContent = 'ENABLE';
-                document.getElementById('aimStat').textContent = 'OFF';
-                runCmd('aimbotdisable');
+                runCmd('rightshoulderon', btn);
             }
         }
 
-        async function toggleHybrid() {
-            if (hybridOn) {
-                const r = await fetch('/hybrid_stop', {method: 'POST'});
-                const d = await r.json();
-                hybridOn = false;
-                document.getElementById('hybBtn').textContent = 'ACTIVATE';
-                document.getElementById('hybState').textContent = 'OFF';
-                if (hybInterval) clearInterval(hybInterval);
-                log(`Hybrid stopped - ${d.switches || 0} switches`);
-                return;
-            }
+        function legitOff(btn) {
+            // Add click animation
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btn.style.transform = '';
+            }, 200);
             
-            const a1 = document.getElementById('hybAim1').value;
-            const a2 = document.getElementById('hybAim2').value;
-            const f = parseInt(document.getElementById('hybFreq').value);
+            const val = document.getElementById('legitSelect').value;
+            const group = document.getElementById('legitGroup');
+            group.querySelectorAll('.btn-small').forEach(b => b.classList.remove('active', 'primary'));
+            group.children[1].classList.add('active', 'primary');
             
-            if (a1 === a2) {
-                log('Error: Select different aim points');
-                return;
-            }
-            
-            const r = await fetch('/hybrid_start', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({aim1: a1, aim2: a2, frequency: f})
-            });
-            
-            if (r.ok) {
-                hybridOn = true;
-                document.getElementById('hybBtn').textContent = 'DEACTIVATE';
-                document.getElementById('hybState').textContent = 'ON';
-                log(`Hybrid activated: ${a1} + ${a2} @ ${f}ms`);
-                startMonitor();
-            }
-        }
-
-        function startMonitor() {
-            if (hybInterval) clearInterval(hybInterval);
-            hybInterval = setInterval(async () => {
-                const r = await fetch('/hybrid_status');
-                const d = await r.json();
-                if (d.active) {
-                    document.getElementById('hybCurrent').textContent = d.current?.toUpperCase() || 'NONE';
-                    document.getElementById('hybCount').textContent = d.count || 0;
-                }
-            }, 100);
-        }
-
-        function resetHybrid() {
-            document.getElementById('hybCurrent').textContent = 'NONE';
-            document.getElementById('hybCount').textContent = '0';
-            log('Hybrid monitor reset');
-        }
-
-        // AIM LEGIT FUNCTIONS
-        function updateLegitTarget() {
-            legitTarget = document.getElementById('legitTarget').value;
-            runCmd(`setLegitTarget:${legitTarget}`);
-            document.getElementById('legitTargetDisplay').textContent = 
-                legitTarget === 'neck' ? 'NECK' : 
-                legitTarget === 'left' ? 'LEFT SHOULDER' : 'RIGHT SHOULDER';
-            updateBindDisplay();
-        }
-
-        function updateLegitKey() {
-            const mouseSelect = document.getElementById('legitKey');
-            const keyboardSelect = document.getElementById('legitKey2');
-            
-            if (keyboardSelect.value) {
-                legitKey = keyboardSelect.value;
-                keyboardSelect.value = '';
+            if (val === 'left') {
+                runCmd('leftshoulderoff', btn);
             } else {
-                legitKey = mouseSelect.value;
+                runCmd('rightshoulderoff', btn);
+            }
+        }
+
+        let currentEmulator = null;
+
+        function selectEmulator(emulator) {
+            currentEmulator = emulator;
+            document.getElementById('injectBtn').disabled = false;
+            document.getElementById('injectStatus').textContent = 'READY';
+            log(`Selected: ${emulator}`);
+            
+            // Animate selected radio
+            const radios = document.querySelectorAll('.radio-option');
+            radios.forEach(r => r.style.transform = 'scale(1)');
+            event.target.closest('.radio-option').style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                event.target.closest('.radio-option').style.transform = '';
+            }, 200);
+        }
+
+        async function injectESP() {
+            if (!currentEmulator) {
+                log('Select emulator first');
+                return;
             }
             
-            runCmd(`setLegitKey:${legitKey}`);
-            updateBindDisplay();
-        }
-
-        function setLegitMode(mode) {
-            legitMode = mode;
-            document.getElementById('modeHold').classList.remove('active');
-            document.getElementById('modeToggle').classList.remove('active');
-            document.getElementById(`mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
-            runCmd(`setLegitMode:${mode}`);
-            document.getElementById('legitModeDisplay').textContent = mode.toUpperCase();
-            updateBindDisplay();
-        }
-
-        function updateBindDisplay() {
-            const keyNames = {
-                'xbutton1': 'MOUSE 4',
-                'xbutton2': 'MOUSE 5',
-                'mouse4': 'MOUSE 4',
-                'mouse5': 'MOUSE 5',
-                'mouse1': 'LEFT MOUSE',
-                'mouse2': 'RIGHT MOUSE',
-                'mouse3': 'MIDDLE MOUSE',
-                'control': 'CTRL',
-                'shift': 'SHIFT',
-                'alt': 'ALT',
-                'capslock': 'CAPS LOCK',
-                'tab': 'TAB',
-                'space': 'SPACE',
-                'enter': 'ENTER',
-                'esc': 'ESC'
-            };
-            document.getElementById('currentBind').textContent = 
-                `${keyNames[legitKey] || legitKey.toUpperCase()} (${legitMode.toUpperCase()})`;
-            document.getElementById('legitKeyDisplay').textContent = keyNames[legitKey] || legitKey.toUpperCase();
-        }
-
-        async function testLegit() {
-            log('> Testing Aim Legit...');
-            const r = await fetch('/aimlegit_toggle', {method: 'POST'});
-            const d = await r.json();
-            log(d.message);
-            updateLegitState();
-        }
-
-        async function updateLegitState() {
+            const btn = document.getElementById('injectBtn');
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btn.style.transform = '';
+            }, 200);
+            
+            document.getElementById('injectStatus').textContent = 'INJECTING...';
+            log(`Injecting ESP into HD-Player.exe...`);
+            
             try {
-                const r = await fetch('/aimlegit_status');
+                const r = await fetch('/inject_esp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({emulator: currentEmulator})
+                });
                 const d = await r.json();
-                document.getElementById('legitState').textContent = d.active ? 'ACTIVE' : 'INACTIVE';
-            } catch(e) {}
-        }
-        setInterval(updateLegitState, 500);
-
-        async function exitApplication() {
-            if (confirm('⚠️ This will completely terminate GHOST-XS. Continue?')) {
-                log('⚠️ TERMINATING APPLICATION...');
-                try {
-                    const r = await fetch('/shutdown', {method: 'POST'});
-                    const d = await r.json();
-                    log(d.message);
-                    setTimeout(() => {
-                        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0a;color:#ff3333;font-family:monospace;flex-direction:column;"><h1 style="font-size:48px;">GHOST-XS</h1><h2 style="margin:20px 0;">TERMINATED</h2><p>The application has been shut down.</p><p>Restart the script to use again.</p></div>';
-                    }, 1000);
-                } catch(e) {
-                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0a;color:#ff3333;font-family:monospace;"><h1>GHOST-XS TERMINATED</h1></div>';
+                if (d.success) {
+                    document.getElementById('injectStatus').textContent = 'INJECTED';
+                    log('✓ ESP Injected successfully');
+                } else {
+                    document.getElementById('injectStatus').textContent = 'FAILED';
+                    log(`✗ Injection failed: ${d.error}`);
                 }
+            } catch(e) {
+                document.getElementById('injectStatus').textContent = 'ERROR';
+                log('Injection error');
             }
         }
 
         window.onload = () => {
-            log('System ready');
-            log('Anti-Cheat Blocker is ACTIVE');
-            updateLegitState();
-            updateBindDisplay();
+            log('STREAMER IS READY');
+            
+            // Add floating animation to badges periodically
+            setInterval(() => {
+                const badges = document.querySelectorAll('.badge');
+                badges.forEach(badge => {
+                    badge.style.transform = 'translateY(-2px)';
+                    setTimeout(() => {
+                        badge.style.transform = '';
+                    }, 200);
+                });
+            }, 3000);
         };
     </script>
 </body>
@@ -1464,24 +1838,17 @@ def execute():
     data = request.get_json()
     cmd = data.get('command', '').lower()
     
-    # Aim Legit commands
-    if cmd.startswith('setlegittarget:'):
-        target = cmd.split(':')[1]
-        msg = set_aim_legit_target(target)
-    elif cmd.startswith('setlegitkey:'):
-        key = cmd.split(':')[1]
-        msg = set_aim_legit_key(key)
-    elif cmd.startswith('setlegitmode:'):
-        mode = cmd.split(':')[1]
-        msg = set_aim_legit_mode(mode)
-    elif cmd == 'aimlegit_toggle':
-        msg = aim_legit_toggle()
+    # AI Aim bot commands
+    if cmd == 'aion':
+        msg = ai_aimbot_on()
+    elif cmd == 'aioff':
+        msg = ai_aimbot_off()
     # Regular commands
     elif cmd == 'aimbotscan':
         msg = HEADLOAD()
-    elif cmd == 'aimbotenable':
+    elif cmd == 'neckon':
         msg = HEADON()
-    elif cmd == 'aimbotdisable':
+    elif cmd == 'neckoff':
         msg = HEADOFF()
     elif cmd == 'leftshoulderon':
         msg = LEFTSHOULDERON()
@@ -1496,79 +1863,21 @@ def execute():
     elif cmd == 'addrecoil':
         msg = AddRecoil()
     else:
-        msg = f"Unknown: {cmd}"
+        msg = f"Unknown command: {cmd}"
     
     return jsonify({"message": msg})
 
-@app.route('/aimlegit_status', methods=['GET'])
-def aimlegit_status():
+@app.route('/inject_esp', methods=['POST'])
+def inject_esp():
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
-    return jsonify(aim_legit_status())
-
-@app.route('/aimlegit_toggle', methods=['POST'])
-def aimlegit_toggle():
-    if not session.get('logged_in'):
-        return jsonify({'error': 'Not logged in'}), 401
-    msg = aim_legit_toggle()
-    return jsonify({'message': msg, 'active': aim_legit_active})
-
-@app.route('/hybrid_start', methods=['POST'])
-def hybrid_start():
-    if not session.get('logged_in'):
-        return jsonify({'error': 'Not logged in'}), 401
-    
-    global hybrid_active, hybrid_aim1, hybrid_aim2, hybrid_frequency
-    global hybrid_current, hybrid_count, hybrid_last_switch
     
     data = request.get_json()
-    a1 = data.get('aim1')
-    a2 = data.get('aim2')
-    freq = data.get('frequency', 50)
+    emulator = data.get('emulator')
     
-    if a1 == a2:
-        return jsonify({'error': 'Same aim points'}), 400
-    
-    hybrid_active = True
-    hybrid_aim1 = a1
-    hybrid_aim2 = a2
-    hybrid_frequency = freq
-    hybrid_current = a1
-    hybrid_count = 0
-    hybrid_last_switch = datetime.now()
-    
-    if a1 == 'neck':
-        HEADON()
-    elif a1 == 'left':
-        LEFTSHOULDERON()
-    elif a1 == 'right':
-        RIGHTSHOULDERON()
-    
-    return jsonify({'message': 'Hybrid started'})
-
-@app.route('/hybrid_stop', methods=['POST'])
-def hybrid_stop():
-    if not session.get('logged_in'):
-        return jsonify({'error': 'Not logged in'}), 401
-    
-    global hybrid_active, hybrid_count
-    hybrid_active = False
-    HEADOFF()
-    cnt = hybrid_count
-    hybrid_count = 0
-    return jsonify({'message': 'Hybrid stopped', 'switches': cnt})
-
-@app.route('/hybrid_status', methods=['GET'])
-def hybrid_status():
-    if not session.get('logged_in'):
-        return jsonify({'error': 'Not logged in'}), 401
-    
-    return jsonify({
-        'active': hybrid_active,
-        'current': hybrid_current,
-        'count': hybrid_count,
-        'freq': hybrid_frequency
-    })
+    # Call ESP injection placeholder
+    result = inject_esp_dll(emulator)
+    return jsonify(result)
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
@@ -1589,49 +1898,6 @@ def shutdown():
         func()
     return jsonify({'message': 'Shutting down...'})
 
-# Hybrid background thread
-def hybrid_loop():
-    global hybrid_active, hybrid_current, hybrid_count, hybrid_last_switch
-    while True:
-        if hybrid_active and hybrid_last_switch:
-            now = datetime.now()
-            diff = (now - hybrid_last_switch).total_seconds() * 1000
-            if diff >= hybrid_frequency:
-                new = hybrid_aim2 if hybrid_current == hybrid_aim1 else hybrid_aim1
-                
-                if new == 'neck':
-                    HEADON()
-                elif new == 'left':
-                    LEFTSHOULDERON()
-                elif new == 'right':
-                    RIGHTSHOULDERON()
-                
-                hybrid_current = new
-                hybrid_last_switch = now
-                hybrid_count += 1
-        time.sleep(0.01)
-
-# Keyboard hook thread
-def keyboard_hook_thread():
-    try:
-        import keyboard
-        def on_key_event(e):
-            if e.event_type == 'down':
-                if e.name == aim_legit_key:
-                    if aim_legit_mode == 'hold':
-                        aim_legit_activate()
-                    else:
-                        aim_legit_toggle()
-            elif e.event_type == 'up':
-                if e.name == aim_legit_key and aim_legit_mode == 'hold':
-                    aim_legit_deactivate()
-        
-        keyboard.hook(on_key_event)
-        keyboard.wait()
-    except:
-        while True:
-            time.sleep(1)
-
 def get_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1648,23 +1914,17 @@ if __name__ == '__main__':
     print("[*] Starting Anti-Cheat Blocker...")
     anticheat_blocker.start()
     
-    # Start hybrid thread
-    t1 = threading.Thread(target=hybrid_loop, daemon=True)
-    t1.start()
-    
-    # Start keyboard hook thread
-    t2 = threading.Thread(target=keyboard_hook_thread, daemon=True)
-    t2.start()
-    
     ip = get_ip()
     
     print("=" * 60)
-    print("  GHOST-XS COMPLETE EDITION")
+    print("  VORTEXOFFICIAL STREAMER DASHBOARD")
     print("=" * 60)
     print(f"  Local URL:  http://localhost:8890")
     print(f"  Network URL: http://{ip}:8890")
     print(f"  PyMem:      {'ACTIVE' if PYMEM_OK else 'SIMULATED'}")
     print(f"  AntiCheat:  ACTIVE (Blocking scanners)")
+    print(f"  AI Aimbot:  PLACEHOLDER (Ready for integration)")
+    print(f"  ESP Inject: PLACEHOLDER (Ready for DLL)")
     print(f"  Terminate:  WORKING")
     print("=" * 60)
     
